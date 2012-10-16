@@ -1,0 +1,7 @@
+The current work is being done in PyFromPy
+
+PyFromPy: Python manipulating CPython parsed AST
+
+PyFromScratch: OCaml parsing and manipulating python
+
+CCPython: C/C++ compiling python, working closely with CPython

@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+*.pyd
+
+PyFromScratch/build
+PyFromScratch/build/Makefile
+
