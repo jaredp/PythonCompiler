@@ -3,19 +3,24 @@ import ast
 from _ast import *
 from unparse import Unparser
 from gencpp import CppGenerator
+from utils import *
+
+class TempVar(AST):
+	nextnum = 0
+	def __init__(self):
+		self.num = TempVar.nextnum
+		TempVar.nextnum += 1
+
+class ExprSeq(expr):
+	def __init__(self, stmts, expr):
+		self.stmts = stmts
+		self.expr = expr
 
 def parseFile(fname):
 	f = open(fname)
 	pcode = f.read()
 	f.close()
 	return ast.parse(pcode, fname)
-
-def mkVanillaFunction(fname, argnames, body):
-	args = arguments([Name(arg, Param()) for arg in argnames], None, None, [])
-	return FunctionDef(fname, args, body, [])
-
-def mkVanillaCall(fname, args):
-	return Call(Name(fname, Load), args, [], None, None)
 
 def extractLoadFunction(mod):
 	imports, fns, classes, init = [], [], [], []
@@ -36,39 +41,15 @@ def extractLoadFunction(mod):
 	
 	mod.body = imports + classes + fns
 
-def transformBlocks(node, transform):
-	# this should really walk the tree explicitly...
-	children = node.__dict__
-	for attr in children:
-		child = children[attr]
-		if type(child) == list:
-			if len(child) == 0:	continue	#no transform([])
-			if isinstance(child[0], stmt):
-				children[attr] = list(transform(child))
-			else:
-				for e in child:
-					transformBlocks(e, transform)
-		else:
-			if hasattr(child, '__dict__'):
-				transformBlocks(child, transform)
-			else:
-				print child
-
-def forEachBlock(fn):
-	def wrapper(node):
-		transformBlocks(node, fn)
-	return wrapper
-
-def forEachStatement(fn):
-	@forEachBlock
-	def wrapper(stmts):
-		for stmt in stmts:
-			for newstmt in fn(stmt):
-				yield newstmt
-	return wrapper
+def getLocals(fnbody):
+	stores = [name.id for name
+			  in getAllOf(Name, fnbody) 
+			  if type(name.ctx) in [Store, AugStore]]
+	gbls = flattenList(gdecl.names for gdecl in getAllOf(Global, fnbody))
+	return list(set(stores) - set(gbls))
 
 @forEachStatement
-def removeNoneStmts(stmts):
+def removeNoneStmts(stmt):
 	if stmt != None:
 		yield stmt
 
@@ -76,29 +57,33 @@ def removeNoneStmts(stmts):
 def makePrintAFunction(stmt):
 	if isinstance(stmt, Print):
 		for val in stmt.values:
-			yield mkVanillaCall("print", [stmt.dest, val])
+			yield Expr(mkVanillaCall("print", [stmt.dest, val]))
 		if stmt.nl:
-			yield mkVanillaCall("printnl", [])
+			yield Expr(mkVanillaCall("printnl", []))
 	else:
 		yield stmt
 
-class TempVar(AST):
-	nextnum = 0
-	def __init__(self):
-		self.num = TempVar.nextnum
-		TempVar.nextnum += 1
 
-from gencpp import CppGenerator
+tfile = '../examples/fib.py'
+def main():
+	m = parseFile(tfile)
+	
+	extractLoadFunction(m)
+	removeNoneStmts(m)
+	makePrintAFunction(m)
+	
+	for fn in getAllOf(FunctionDef, m):
+		fn.locals = getLocals(fn.body)
+	
+	CppGenerator(m)
+	
+	print
+	print
 
-tfile = '/Users/Jared/Dropbox/Development/PythonCompiler/fib.py'
+
 if __name__ == '__main__':
-	mod = parseFile(tfile)
-	
-	extractLoadFunction(mod)
-	removeNoneStmts(mod)
-	makePrintAFunction(mod)
-	
-	CppGenerator(mod)
-	
-	print
-	print
+	from debug import print_exc_plus
+	try:
+		main()
+	except:
+		print_exc_plus()

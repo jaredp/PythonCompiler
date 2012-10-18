@@ -34,6 +34,7 @@ class CppGenerator:
 		self.f = file
 		self.future_imports = []
 		self._indent = 0
+		self.write('\n#include <pylibs.h>\n')
 		self.dispatch(tree)
 		self.f.write("")
 		self.f.flush()
@@ -48,7 +49,7 @@ class CppGenerator:
 	
 	def enter(self):
 		"Print ':', and increase the indentation."
-		self.write("{")
+		self.write(" {")
 		self._indent += 1
 	
 	def leave(self):
@@ -79,10 +80,12 @@ class CppGenerator:
 	
 	def _FunctionDef(self, t):
 		self.write("\n")
-		self.fill(CType+t.name + "(")
+		self.fill(CType + t.name + "(")
 		self.dispatch(t.args)
 		self.write(")")
 		self.enter()
+		for local in t.locals:
+			self.fill(CType + local + ";")
 		self.dispatch(t.body)
 		self.leave()
 	
@@ -287,8 +290,9 @@ class CppGenerator:
 			self.leave()
 	
 	def _If(self, t):
-		self.fill("if ")
+		self.fill("if (")
 		self.dispatch(t.test)
+		self.write(")")
 		self.enter()
 		self.dispatch(t.body)
 		self.leave()
@@ -296,8 +300,9 @@ class CppGenerator:
 		while (t.orelse and len(t.orelse) == 1 and
 			   isinstance(t.orelse[0], ast.If)):
 			t = t.orelse[0]
-			self.fill("elif ")
+			self.fill("else if (")
 			self.dispatch(t.test)
+			self.write(")")
 			self.enter()
 			self.dispatch(t.body)
 			self.leave()
@@ -329,20 +334,12 @@ class CppGenerator:
 		self.enter()
 		self.dispatch(t.body)
 		self.leave()
-	
+		
 	# expr
 	def _Str(self, tree):
-		# if from __future__ import unicode_literals is in effect,
-		# then we want to output string literals using a 'b' prefix
-		# and unicode literals with no prefix.
-		if "unicode_literals" not in self.future_imports:
-			self.write(repr(tree.s))
-		elif isinstance(tree.s, str):
-			self.write("b" + repr(tree.s))
-		elif isinstance(tree.s, unicode):
-			self.write(repr(tree.s).lstrip("u"))
-		else:
-			assert False, "shouldn't get here"
+		self.write('"')
+		self.write(repr(tree.s)[1:-1])
+		self.write('"')
 	
 	def _Name(self, t):
 		self.write(t.id)
