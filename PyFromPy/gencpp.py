@@ -34,7 +34,7 @@ class CppGenerator:
 		self.f = file
 		self.future_imports = []
 		self._indent = 0
-		self.write('\n#include <pylibs.h>\n')
+		self.write('\n#include "pylibs.h"\n')
 		self.dispatch(tree)
 		self.f.write("")
 		self.f.flush()
