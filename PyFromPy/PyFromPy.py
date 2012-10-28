@@ -1,26 +1,22 @@
 
 import ast
 from _ast import *
-from unparse import Unparser
-from gencpp import CppGenerator
 from utils import *
+from astutils import *
 
 class TempVar(AST):
 	nextnum = 0
-	def __init__(self):
+	def __init__(self, nameSuggestion=''):
 		self.num = TempVar.nextnum
 		TempVar.nextnum += 1
+		self.name = nameSuggestion+'$'+str(self.num)
+		
+	def __repr__(self):
+		return self.name
 
-class ExprSeq(expr):
-	def __init__(self, stmts, expr):
-		self.stmts = stmts
-		self.expr = expr
 
-def parseFile(fname):
-	f = open(fname)
-	pcode = f.read()
-	f.close()
-	return ast.parse(pcode, fname)
+def checkNoExecs(m):
+	pass
 
 def extractLoadFunction(mod):
 	imports, fns, classes, init = [], [], [], []
@@ -48,12 +44,12 @@ def getLocals(fnbody):
 	gbls = flattenList(gdecl.names for gdecl in getAllOf(Global, fnbody))
 	return list(set(stores) - set(gbls))
 
-@forEachStatement
+@perStatement
 def removeNoneStmts(stmt):
 	if stmt != None:
 		yield stmt
 
-@forEachStatement
+@perStatement
 def makePrintAFunction(stmt):
 	if isinstance(stmt, Print):
 		for val in stmt.values:
@@ -63,27 +59,66 @@ def makePrintAFunction(stmt):
 	else:
 		yield stmt
 
+@perFunction
+def setFnDocstrings(fn):
+	if len(fn.body) > 0 and matches(fn.body[0], Expr(Str)):
+		fn.docstring = fn.body[0].value.s
+		fn.body = fn.body[1:]
+	else:
+		fn.docstring = None
 
-tfile = '../examples/fib.py'
-def main():
-	m = parseFile(tfile)
-	
+
+@perFunction
+def setLocals(fn):
+	fn.locals = {lcl: TempVar(lcl) for lcl in getLocals(fn.body)}
+	fn.temps = fn.locals.values()
+
+#similar analysis needs to be done for closures, globals
+#closure handling is *difficult*
+
+@perExprInFunc
+def extractSubexprs(e, block, fn):
+	if isinstance(e, Name):
+		#lookup routine: locals, captures, globals, I think
+		if e.id in fn.locals:
+			return fn.locals[e.id]
+		else:
+			return e
+
+	else:
+		return e
+
+def transformModule(m):
+	removeLineNos(m)
+		
+	checkNoExecs(m)
+
 	extractLoadFunction(m)
+	#somewhere around here, extract nested functions
+	#I believe this should include methods in some form
+	
 	removeNoneStmts(m)
+	setFnDocstrings(m)
 	makePrintAFunction(m)
+	#makeReprAFunction(m)
+	#makeAssertAFunction(m)
 	
-	for fn in getAllOf(FunctionDef, m):
-		fn.locals = getLocals(fn.body)
-	
-	CppGenerator(m)
-	
-	print
-	print
+	setLocals(m)
+	extractSubexprs(m)
 
 
-if __name__ == '__main__':
-	from debug import print_exc_plus
-	try:
-		main()
-	except:
-		print_exc_plus()
+#makes certain debugging easier
+def removeLineNos(m):
+	for n in allchildren(m):
+		if hasattr(n, 'lineno'):
+			del n.lineno
+		if hasattr(n, 'col_offset'):
+			del n.col_offset
+
+
+def parseFile(fname):
+	f = open(fname)
+	pcode = f.read()
+	f.close()
+	return ast.parse(pcode, fname)
+

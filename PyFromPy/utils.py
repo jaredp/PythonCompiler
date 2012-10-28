@@ -1,6 +1,14 @@
 
 from _ast import *
+import sys
+from unparse import Unparser
 
+def log(obj):
+	if isinstance(obj, AST):
+		Unparser(obj, sys.stderr)
+		print >>sys.stderr
+	else:
+		print >>sys.stderr, obj
 
 def compose(f):
 	def inner(g):
@@ -13,6 +21,17 @@ def flattenList(l):
 	for i in l:
 		for j in i:
 			yield j
+			
+#http://stackoverflow.com/a/4578605/257261
+def partition(pred, iterable):
+    trues = []
+    falses = []
+    for item in iterable:
+        if pred(item):
+            trues.append(item)
+        else:
+            falses.append(item)
+    return trues, falses
 
 
 #############################################################
@@ -26,61 +45,11 @@ def mkVanillaFunction(fname, argnames, body):
 def mkVanillaCall(fname, args):
 	return Call(Name(fname, Load), args, [], None, None)
 
-
-#############################################################
-# AST traversal
-#############################################################
-
-def transformBlocks(node, transform):
-	# this should really walk the tree explicitly...
-	children = node.__dict__
-	for attr in children:
-		child = children[attr]
-		if child == []:	
-			continue #no transform([])
-		elif type(child) == list:
-			for e in child: transformBlocks(e, transform)
-			if isinstance(child[0], stmt):
-				children[attr] = list(transform(child))
-		elif hasattr(child, '__dict__'):
-			transformBlocks(child, transform)
-
-def forEachBlock(fn):
-	def wrapper(node):
-		transformBlocks(node, fn)
-	return wrapper
-
-def forEachStatement(fn):
-	@forEachBlock
-	def wrapper(stmts):
-		for stmt in stmts:
-			for newstmt in fn(stmt):
-				yield newstmt
-	return wrapper
-
-def allchildren(node):
-	if isinstance(node, AST): children = node.__dict__.values()
-	elif type(node) == list:  children = node
-	else: return
-		
-	for child in children:
-		for grandchild in allchildren(child):
-			yield grandchild
-		if isinstance(child, AST):
-			yield child
-
-
-def getAllOf(subnodetype, node):
-	for subexpr in allchildren(node):
-		if isinstance(subexpr, subnodetype):
-			yield subexpr
-
-
 #############################################################
 # Pattern matching
 #############################################################
 
-ig, igs  = object(), object()
+__, ___ = ig, igs  = object(), object()
 class inverse:
 	def __init__(self, pattern):
 		self.pattern = pattern
@@ -97,6 +66,7 @@ inverse(n)		matches iff it's not n
 def matches(node, pattern):
 	if pattern == ig:				return True
 	if type(pattern) == inverse:	return not matches(node, pattern.pattern)
+	if type(pattern) == type:		return isinstance(node, pattern)
 	if type(node) != type(pattern): return False
 	
 	if type(node) in [list, tuple]:

@@ -5,6 +5,7 @@
 
 import sys
 import ast
+from utils import log
 
 INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
 
@@ -23,6 +24,30 @@ def interleave(inter, f, seq):
 
 CType = "int "
 
+cppFileStart = r'''
+/*
+ * generated from source python by the py++ compiler
+ * by Jared Pochtar and Abhas Bodas
+ * available at github.com/jaredp/PythonCompiler
+ */
+
+#include "../pylib/pylibs.h"
+
+'''
+
+cppFileEnd = r'''
+
+#include <stdio.h>
+
+int main(int argc, char **argv) {
+	float start = fclock();
+	load();
+	float end = fclock();
+	printf("\nin %f seconds\n", end - start);
+}
+
+'''
+
 class CppGenerator:
 	"""Methods in this class recursively traverse an AST and
 		output source code for the abstract syntax; original formatting
@@ -34,9 +59,9 @@ class CppGenerator:
 		self.f = file
 		self.future_imports = []
 		self._indent = 0
-		self.write('\n#include "pylibs.h"\n')
+		self.write(cppFileStart)
 		self.dispatch(tree)
-		self.f.write("")
+		self.f.write(cppFileEnd)
 		self.f.flush()
 	
 	def fill(self, text = ""):
@@ -80,12 +105,14 @@ class CppGenerator:
 	
 	def _FunctionDef(self, t):
 		self.write("\n")
+		if t.docstring:
+			self.fill('const char *%s__doc = "%s";' % (t.name, t.docstring))
 		self.fill(CType + t.name + "(")
 		self.dispatch(t.args)
 		self.write(")")
 		self.enter()
-		for local in t.locals:
-			self.fill(CType + local + ";")
+		for temp in t.temps:
+			self.fill(CType + temp.name + ";")
 		self.dispatch(t.body)
 		self.leave()
 	
@@ -170,34 +197,6 @@ class CppGenerator:
 		if t.msg:
 			self.write(", ")
 			self.dispatch(t.msg)
-	
-	def _Exec(self, t):
-		self.fill("exec ")
-		self.dispatch(t.body)
-		if t.globals:
-			self.write(" in ")
-			self.dispatch(t.globals)
-		if t.locals:
-			self.write(", ")
-			self.dispatch(t.locals)
-	
-	def _Print(self, t):
-		self.fill("print ")
-		do_comma = False
-		if t.dest:
-			self.write(">>")
-			self.dispatch(t.dest)
-			do_comma = True
-		for e in t.values:
-			if do_comma:self.write(", ")
-			else:do_comma=True
-			self.dispatch(e)
-		if not t.nl:
-			self.write(",")
-	
-	def _Global(self, t):
-		self.fill("global ")
-		interleave(lambda: self.write(", "), self.write, t.names)
 	
 	def _Yield(self, t):
 		self.write("(")
@@ -343,6 +342,9 @@ class CppGenerator:
 	
 	def _Name(self, t):
 		self.write(t.id)
+	
+	def _TempVar(self, t):
+		self.write(t.name)
 	
 	def _Repr(self, t):
 		self.write("`")
