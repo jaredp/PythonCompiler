@@ -87,6 +87,21 @@ exprComponents = {
 #	alias = (identifier name, identifier? asname)
 
 
+#############################################################
+# AST constructors
+#############################################################
+
+def mkVanillaFunction(fname, argnames, body):
+	args = arguments([Name(arg, Param()) for arg in argnames], None, None, [])
+	return FunctionDef(fname, args, body, [])
+
+def mkVanillaCall(fname, args):
+	return Call(Name(fname, Load), args, [], None, None)
+
+#############################################################
+# AST walkers
+#############################################################
+
 def transformBlocks(node, transform, *args, **kwargs):
 	# this should really walk the tree explicitly...
 	if not hasattr(node, '__dict__'):

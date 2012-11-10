@@ -1,5 +1,3 @@
-
-from _ast import *
 import sys
 from unparse import Unparser
 
@@ -32,18 +30,6 @@ def partition(pred, iterable):
         else:
             falses.append(item)
     return trues, falses
-
-
-#############################################################
-# AST constructors
-#############################################################
-
-def mkVanillaFunction(fname, argnames, body):
-	args = arguments([Name(arg, Param()) for arg in argnames], None, None, [])
-	return FunctionDef(fname, args, body, [])
-
-def mkVanillaCall(fname, args):
-	return Call(Name(fname, Load), args, [], None, None)
 
 #############################################################
 # Pattern matching
