@@ -59,36 +59,33 @@ exprComponents = {
 	Tuple: ['elts', 'ctx'],
 }
 	
-	expr_context = Load | Store | Del | AugLoad | AugStore | Param
+#	expr_context = Load | Store | Del | AugLoad | AugStore | Param
 	
-	slice = Ellipsis | Slice(expr? lower, expr? upper, expr? step) 
-	| ExtSlice(slice* dims) 
-	| Index(expr value) 
+#	slice = Ellipsis | Slice(expr? lower, expr? upper, expr? step)
+#		  | ExtSlice(slice* dims)
+#		  | Index(expr value)
 	
-	boolop = And | Or 
+#	boolop = And | Or
 	
-	operator = Add | Sub | Mult | Div | Mod | Pow | LShift 
-	| RShift | BitOr | BitXor | BitAnd | FloorDiv
+#	operator = Add | Sub | Mult | Div | Mod | Pow | LShift
+#	| RShift | BitOr | BitXor | BitAnd | FloorDiv
 	
-	unaryop = Invert | Not | UAdd | USub
+#	unaryop = Invert | Not | UAdd | USub
 	
-	cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
+#	cmpop = Eq | NotEq | Lt | LtE | Gt | GtE | Is | IsNot | In | NotIn
 	
-	comprehension = (expr target, expr iter, expr* ifs)
+#	comprehension = (expr target, expr iter, expr* ifs)
 	
-	-- not sure what to call the first argument for raise and except
-	excepthandler = ExceptHandler(expr? type, expr? name, stmt* body)
-	attributes (int lineno, int col_offset)
+#	excepthandler = ExceptHandler(expr? type, expr? name, stmt* body)
+#	attributes (int lineno, int col_offset)
 	
-	arguments = (expr* args, identifier? vararg, 
-	identifier? kwarg, expr* defaults)
+#	arguments = (expr* args, identifier? vararg,
+#	identifier? kwarg, expr* defaults)
 	
-	-- keyword arguments supplied to call
-	keyword = (identifier arg, expr value)
+#	keyword = (identifier arg, expr value)
 	
-	-- import name with optional 'as' alias.
-	alias = (identifier name, identifier? asname)
-	'''
+#	alias = (identifier name, identifier? asname)
+
 
 def transformBlocks(node, transform, *args, **kwargs):
 	# this should really walk the tree explicitly...
