@@ -76,8 +76,8 @@ def uniqueID(suggestion=''):
 #############################################################
 
 [makeSubclass(IRNode, newnode, components) for (newnode, components) in {
-	'IRArg': [],				# argument to operation
-	'IROperation': ['target'],	# type(target) = IRVar|None
+	'IRArg': [],		# argument to operation
+	'IROperation': [],	
 	'IRBlock': [],
 	'IREnvironment': ['namespace', 'docstring'],
  }.items()]
@@ -99,46 +99,50 @@ def uniqueID(suggestion=''):
 }.items()]
 
 [makeSubclass(IROperation, newnode, components) for (newnode, components) in {
+	# majority of OPs are IRProducingOps, meaning they produce something
+	# IRProducing OPs are intended to be like 3-address code
+	'IRProducingOp': ['target'],	# type(target) = IRVar|None
+	
+	'Return': ['value'],
+	'Yield': ['value'],
+	'Raise': ['exception'],
+		
+	'AttrSetter': ['attr'],
+	'SubscriptSetter': ['slice'],	# no idea what this is yet / several options
+	
+	'DeleteVar': ['var'],			# IRVar
+	#figure these out later
+	'DeleteAttr': [],
+	'DeleteSlice': [],
+}.items()]
+
+[makeSubclass(IRProducingOp, newnode, components) for (newnode, components) in {
 	'BinOp': ['lhs', 'rhs'],
 	'UnaryOp': ['arg'],
 
 	# type(fn) = IRAtom
 	'FCall': ['fn', 'args', 'kwargs', 'starargs', 'keystarargs'],
-	
+	'MethodCall': ['object', 'methname', 'args', 'kwargs', 'starargs', 'keystarargs'],
+
 	# type(fn) = IRFunction
 	'ConstCall': ['fn', 'args'],
 	
 	'Subscript': ['slice'],
 	'Attr':	['attr'],
 
-	'Setter': ['rhs'],
-
-	#returns/yields/raises target
-	'Return': [],
-	'Raise': [],
-	'Yield': [],
+	'Assign': ['rhs'],
 	
-	'GetGeneratorSentIn': [],
-	'GetLocals': [],
-	'GetGlobals': [],
+	'GetGeneratorSentIn': [],	# x = yield
+	'GetLocals': [],			# locals(), but locals can be assigned
+	'GetGlobals': [],			# globals(), but globals can be assigned
 	
 	'MakeFunction': ['code', 'defaults', 'closures'],	# type(code) = IRFunction
 	'MakeClass': ['name', 'superclasses'],
 	
-	#these are actually builtin functions...
+	#these are actually builtin functions, but they may be assigned to...
 	'GetType': ['inspected'],		# type(inspected)
 	'Iter': ['arg'],
 	'Next': ['arg']
-}.items()]
-
-[makeSubclass(FCall, newnode, components) for (newnode, components) in {
-	'MethodCall': ['object']
- }.items()]
-
-[makeSubclass(Setter, newnode, components) for (newnode, components) in {
-	'PlainSetter': [],
-	'AttrSetter': ['attr'],
-	'SubscriptSetter': ['slice']	# no idea what this is yet / several options
 }.items()]
 
 [makeSubclass(BinOp, op, []) for op in [
@@ -182,16 +186,16 @@ class Namespace(object):
 
 [makeSubclass(IREnvironment, newnode, components) for (newnode, components) in {
 	'IRFunction': [
-		'name',			#C name
-		'definedname',	#name defined in Python
-		'body',
+		'cname',		#C name
+		'pyname',		#name defined in Python
+		'body',			#codeblock, or None for builtins
 		
-		'args',		# pynames in namespace.members
+		'args',			# pynames in namespace.members
 		'varargs',
 		'kwargs',
 				   
-		'defaults',	# IRVars?
-		'captures',	# IRVars?
+		'defaults',		# [IRVars] ?
+		'captures',		# [IRVars] ?
 		'globals',
 		
 		#flags
@@ -212,29 +216,3 @@ class Namespace(object):
 		'toplevel'		# code block
 	],
 }.items()]
-
-
-code_print_indentation_lvl = 0
-def _print_indented(s):
-	print '  '*code_print_indentation_lvl + s
-
-def pprintCodeBlock(codeblock):
-	for op in codeblock:
-		op.pprint()
-
-def _pprintOp(op):
-	_print_indented(repr(op))
-IROperation.pprint = _pprintOp
-	
-def _pprintMod(mod):
-	print mod.namespace
-	print 'functions:', mod.functions
-	print 'main:'
-	pprintCodeBlock(mod.toplevel)
-IRModule.pprint = _pprintMod
-	
-if __name__ == '__main__':
-	print IRVarRef(var=IRVar())
-	print IRFunction(namespace=Namespace(), name='myFibFn')
-	print BinOp('a', 'b', 'c')
-	

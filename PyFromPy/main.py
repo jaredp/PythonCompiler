@@ -35,9 +35,7 @@ def mainWithFancyExcept():
 
 
 def main():
-	print len(sys.argv)
 	if len(sys.argv) == 3:
-		print "yea I'm here"
 		mainWithFancyExcept()
 	else:
 		_main()
