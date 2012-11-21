@@ -1,4 +1,4 @@
-from ir import *
+from IR.ir import *
 
 
 # print utils

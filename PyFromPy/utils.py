@@ -1,5 +1,5 @@
 import sys
-from unparse import Unparser
+#from unparse import Unparser
 
 def log(obj):
 	if isinstance(obj, AST):
@@ -30,6 +30,17 @@ def partition(pred, iterable):
         else:
             falses.append(item)
     return trues, falses
+
+#############################################################
+# Unique names
+#############################################################
+
+nextUniqueNum = 0
+def uniqueID(suggestion=''):
+	global nextUniqueNum
+	uid = suggestion+'$'+str(nextUniqueNum)
+	nextUniqueNum += 1
+	return uid
 
 #############################################################
 # Pattern matching

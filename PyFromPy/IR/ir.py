@@ -1,104 +1,41 @@
 
-def getAllSlots(cls):
-	slots = []
-	for superclass in cls.__bases__:
-		slots += getAllSlots(superclass)
-	
-	if hasattr(cls, '__slots__'):
-		slots += cls.__slots__
-	
-	return slots
-	
-def makeSubclass(superclass, name, components):
-	globals()[name] = type(name, (superclass,), {'__slots__':components})
-	
-#############################################################
-# Basic Nodes
-#############################################################
+from IR.base import IRNode, IRVar
 
-class IRNode(object):
-	def __init__(self, *args, **kwparams):
-		if args != ():
-			vals = zip(self.slots(), args) + kwparams.items()
-		else:
-			vals = kwparams.items()
-		for (key, val) in vals:
-			setattr(self, key, val)
-	
-	isa = isinstance
-	
-	def slots(self):
-		return getAllSlots(self.__class__)
-	
-	def contents(self):
-		return [
-			(slot, getattr(self, slot))
-			for slot in self.slots()
-			if hasattr(self, slot)
-		]
-	
-	def __repr__(self):
-		classname = self.__class__.__name__
-		attrs = ['%s = %s' % attr for attr in self.contents()]
-		attrsRep = ', '.join(attrs)
-		return '<%s of %s>' % (classname, attrsRep)
+def _subclass(superclass, subclasses):
+	bases = (superclass,)
+	for name, components in subclasses.items():
+		newclass = type(name, bases, {'__slots__':components})
+		globals()[name] = newclass
 
-class IRVar(IRNode):
-	nextnum = 0
-	
-	value = None
-	# use if there's some kind of constant value, like a class, function, or potentially literal
-	
-	__slots__ = ['num', 'name', 'value'] # and some type stuff...
-	
-	def __init__(self, nameSuggestion=''):
-		self.num = IRVar.nextnum
-		self.name = uniqueID(nameSuggestion)
-	
-	def __eq__(lhs, rhs):
-		return lhs.num == rhs.num
-	
-	def isActually(lhs, rhs):
-		lhs.num = rhs.num
-		lhs.name = rhs.name
-		#probably something with values/types but that's beyond here
-	
-	def __repr__(self):
-		return self.name
-
-def uniqueID(suggestion=''):
-	uid = suggestion+'$'+str(IRVar.nextnum)
-	IRVar.nextnum += 1
-	return uid
 
 #############################################################
 # IRNodes
 #############################################################
 
-[makeSubclass(IRNode, newnode, components) for (newnode, components) in {
+_subclass(IRNode, {
 	'IRArg': [],		# argument to operation
 	'IROperation': [],	
 	'IRBlock': [],
 	'IREnvironment': ['namespace', 'docstring'],
- }.items()]
+ })
 
 # all code blocks are non-None [IROperation|IRBlock]
 
-[makeSubclass(IRBlock, newnode, components) for (newnode, components) in {
+_subclass(IRBlock, {
 	'If': ['condition', 'then', 'orelse'],	# condition is an IRAtom
 	'While': ['condition', 'body'],
 	'Try': ['body', 'catch', 'finally']
 	# type(catch) = None|(exception (pyname), as (pyname), handler (code block))
-}.items()]
+})
 
-[makeSubclass(IRArg, newnode, components) for (newnode, components) in {
+_subclass(IRArg, {
 	'IRVarRef': ['var'],# type(var) = IRVar
 	'IRStringLiteral': ['value'],
 	'IRIntLiteral': ['value'],
 	'IRFloatLiteral': ['value'],
-}.items()]
+})
 
-[makeSubclass(IROperation, newnode, components) for (newnode, components) in {
+_subclass(IROperation, {
 	# majority of OPs are IRProducingOps, meaning they produce something
 	# IRProducing OPs are intended to be like 3-address code
 	'IRProducingOp': ['target'],	# type(target) = IRVar|None
@@ -114,9 +51,9 @@ def uniqueID(suggestion=''):
 	#figure these out later
 	'DeleteAttr': [],
 	'DeleteSlice': [],
-}.items()]
+})
 
-[makeSubclass(IRProducingOp, newnode, components) for (newnode, components) in {
+_subclass(IRProducingOp, {
 	'BinOp': ['lhs', 'rhs'],
 	'UnaryOp': ['arg'],
 
@@ -136,6 +73,7 @@ def uniqueID(suggestion=''):
 	'GetLocals': [],			# locals(), but locals can be assigned
 	'GetGlobals': [],			# globals(), but globals can be assigned
 	
+	'GetModule': ['module'],	# type(module) = IRModule
 	'MakeFunction': ['code', 'defaults', 'closures'],	# type(code) = IRFunction
 	'MakeClass': ['name', 'superclasses'],
 	
@@ -143,9 +81,9 @@ def uniqueID(suggestion=''):
 	'GetType': ['inspected'],		# type(inspected)
 	'Iter': ['arg'],
 	'Next': ['arg']
-}.items()]
-
-[makeSubclass(BinOp, op, []) for op in [
+})
+'''
+_subclass(BinOp, op, []) for op in [
 	'Add', 'Sub', 'Mult', 'Div', 'FloorDiv', 'Mod', 'Pow',
 	'LShift', 'RShift', 'BitOr', 'BitXor', 'BitAnd',
 	
@@ -157,12 +95,10 @@ def uniqueID(suggestion=''):
 	'And', 'Or'
 ]]
 
-[makeSubclass(UnaryOp, op, []) for op in [
+_subclass(UnaryOp, op, []) for op in [
 	'Invert', 'Not', 'UAdd', 'USub'
 ]]
-
-cpythonFunctions = []	# [IRFunction(del body)]; add to this elsewhere
-
+'''
 # pyname is the label for something in python, represented as a string
 
 class Namespace(object):
@@ -184,7 +120,7 @@ class Namespace(object):
 		self.temporaries.add(t)
 		return t
 
-[makeSubclass(IREnvironment, newnode, components) for (newnode, components) in {
+_subclass(IREnvironment, {
 	'IRFunction': [
 		'cname',		#C name
 		'pyname',		#name defined in Python
@@ -215,4 +151,4 @@ class Namespace(object):
 		'classes',		# [IRClass]
 		'toplevel'		# code block
 	],
-}.items()]
+})
