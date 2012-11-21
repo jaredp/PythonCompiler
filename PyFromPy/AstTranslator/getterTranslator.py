@@ -1,10 +1,8 @@
 from IR import *
+from BaseTranslator import translatorMixin
 
-class GetterTranslator:
-	def _Name(s, id, ctx):
-		#ctx *should* be ignorable
-		return s.getVarNamed(id)
-
+@translatorMixin
+class Getters:
 	def _Attribute(s, value, attr, ctx):
 		raise NotImplementedError
 	

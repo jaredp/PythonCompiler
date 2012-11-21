@@ -1,7 +1,9 @@
 
 from IR import *
+from BaseTranslator import translatorMixin
 
-class GeneratorTranslator:
+@translatorMixin
+class Generators:
 	def _ListComp(s, elt, generators):
 		raise NotImplementedError
 

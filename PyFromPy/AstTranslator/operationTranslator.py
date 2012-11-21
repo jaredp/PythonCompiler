@@ -1,7 +1,10 @@
 import IR
 import ast
 
-class OperationTranslator:
+from BaseTranslator import translatorMixin
+
+@translatorMixin
+class Operations:
 	def _BoolOp(s, op, values):
 		raise NotImplementedError
 		

@@ -1,7 +1,9 @@
 
 from IR import ir
+from BaseTranslator import translatorMixin
 
-class VarTranslator:
+@translatorMixin
+class Names:
 	def _Global(s, names):
 		if s.isInGlobalBlock():
 			s.error("global declaration in global scope")
@@ -25,6 +27,10 @@ class VarTranslator:
 			elif type(target) in [ast.List, astTuble]:
 				s._Del(target.elts)
 
+	def _Name(s, id, ctx):
+		#ctx *should* be ignorable
+		return s.getVarNamed(id)
+		
 	def _Assign(s, targets, value):
 		rhstemp = s.translateExpr(value)
 		return s.makeAssignment(targets, rhstemp)

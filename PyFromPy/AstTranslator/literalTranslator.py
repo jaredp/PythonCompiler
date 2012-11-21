@@ -1,7 +1,9 @@
 
 from IR import *
+from BaseTranslator import translatorMixin
 
-class LiteralTranslator:
+@translatorMixin
+class Literals:
 	def _Num(s, n):
 		if isinstance(n, int):
 			return IRIntLiteral(n)

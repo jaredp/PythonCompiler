@@ -1,35 +1,16 @@
 
-import ast
-from ASTToIR import BaseTranslator
-from varTranslator import VarTranslator
-from controlFlowTranslator import ControlFlowTranslator
-from literalTranslator import LiteralTranslator
-from operationTranslator import OperationTranslator
-from functionTranslator import FunctionTranslator
-from generatorTranslator import GeneratorTranslator
+from BaseTranslator import translatorMixin, getTranslator
+import controlFlowTranslator
+import definitionTranslator
+import functionTranslator
+import generatorTranslator
+import getterTranslator
+import literalTranslator
+import operationTranslator
+import unimplementedTranslator
+import varTranslator
 
-def translate(astmodule):
-	return Translator(astmodule).module
-
-def parseFile(fname):
-	f = open(fname)
-	pcode = f.read()
-	f.close()
-	return ast.parse(pcode, fname)
-
-def translateFile(fname):
-	return translate(parseFile(fname))
-
-# General FIXME/TODO/UNHANDLED: packages are compeletely unsupported
-
-def lookupModule(mname):
-	#FIXME: this is actually fairly complex
-	return mname + '.py'
-
-# global becasue a run of the compiler should
-# correspond to translating a single entire program
-modules = {}
-
+@translatorMixin
 class ImportTranslator(object):
 	def translateModule(self, mname):
 		global modules
@@ -56,15 +37,29 @@ class ImportTranslator(object):
 			)
 			s.emit(copyop)
 
+Translator = getTranslator()
 
-class Translator(BaseTranslator,
-	ImportTranslator, 
-	VarTranslator, 
-	ControlFlowTranslator, 
-	LiteralTranslator,
-	OperationTranslator,
-	FunctionTranslator,
-	GeneratorTranslator):
-	pass
+import ast
 
+def translate(astmodule):
+	return Translator(astmodule).module
+
+def parseFile(fname):
+	f = open(fname)
+	pcode = f.read()
+	f.close()
+	return ast.parse(pcode, fname)
+
+def translateFile(fname):
+	return translate(parseFile(fname))
+
+# General FIXME/TODO/UNHANDLED: packages are compeletely unsupported
+
+def lookupModule(mname):
+	#FIXME: this is actually fairly complex
+	return mname + '.py'
+
+# global becasue a run of the compiler should
+# correspond to translating a single entire program
+modules = {}
 

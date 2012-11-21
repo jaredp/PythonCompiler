@@ -1,6 +1,8 @@
 from IR import *
+from BaseTranslator import translatorMixin
 
-class DefinitionTranslator:
+@translatorMixin
+class Definitions:
 	def _FunctionDef(s, name, args, body, decorator_list):
 		raise NotImplementedError
 	

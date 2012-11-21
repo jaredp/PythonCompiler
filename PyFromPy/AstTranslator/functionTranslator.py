@@ -1,9 +1,9 @@
 
-
 from IR import *
+from BaseTranslator import translatorMixin
 
-class FunctionTranslator:
-	
+@translatorMixin
+class Functions:	
 	def _Call(s, func, args, keywords, starargs, kwargs):
 		return FCall(
 			s.getNewTemporary(),

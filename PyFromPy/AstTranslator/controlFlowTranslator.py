@@ -1,7 +1,9 @@
 
 from IR import ir
+from BaseTranslator import translatorMixin
 
-class ControlFlowTranslator:
+@translatorMixin
+class ControlFlow:
 	def _If(s, test, body, orelse):
 		return ir.If(
 			s.translateExpr(test),

@@ -1,6 +1,8 @@
 
 # for completeness
+from BaseTranslator import translatorMixin
 
+@translatorMixin
 class UnimplementedTranslator:
 	def _Assert(s, test, msg):
 		pass

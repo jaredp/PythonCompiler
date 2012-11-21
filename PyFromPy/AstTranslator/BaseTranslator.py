@@ -1,4 +1,5 @@
 from utils import *
+from IR import *
 
 class Environment(object):
 	def __init__(self, irenv):
@@ -7,14 +8,6 @@ class Environment(object):
 		self.setVars = set()
 		self.declaredGlobals = set()
 
-translatorMixins = [BaseTranslator]		
-def translatorMixin(mixin):
-	translatorMixins.append(mixin)
-	return mixin
-	
-def getTranslator():
-	global Translator
-	Translator = type('Translator', translatorMixins,  {})
 
 class BaseTranslator(object):
 	def __init__(s, astmodule):
@@ -138,5 +131,12 @@ class BaseTranslator(object):
 		s.translateExpr(value)
 		
 		
-		
+translatorMixins = [BaseTranslator]		
+def translatorMixin(mixin):
+	translatorMixins.append(mixin)
+	return mixin
+	
+def getTranslator():
+	return type('Translator', tuple(translatorMixins),  {})
+	
 		
