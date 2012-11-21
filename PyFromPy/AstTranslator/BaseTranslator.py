@@ -8,6 +8,8 @@ class Environment(object):
 		self.setVars = set()
 		self.declaredGlobals = set()
 
+class UserProgramError(Exception):
+	pass
 
 class BaseTranslator(object):
 	def __init__(s, astmodule):
@@ -77,7 +79,7 @@ class BaseTranslator(object):
 		s.colnum = astobj.__dict__.pop('col_offset', None)
 
 	def error(s, errmsg):
-		raise Exception('%s at %s:%s' % (errmsg, s.linenum, s.colnum))
+		raise UserProgramError('error: %s at %s:%s' % (errmsg, s.linenum, s.colnum))
 
 	#code block stack
 	def enterBlock(s, block):

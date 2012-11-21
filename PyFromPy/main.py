@@ -3,6 +3,10 @@
 import AstTranslator
 import IR
 
+def _main():
+	irmod = AstTranslator.translateFile(sys.argv[1])
+	irmod.pprint()
+
 import sys
 
 # http://code.activestate.com/recipes/52215/
@@ -45,24 +49,14 @@ def print_exc_plus():
 			except:
 				errlog("\t%20s = <ERROR WHILE PRINTING VALUE>" % key)
 
-def _main():
-	irmod = AstTranslator.translateFile(sys.argv[1])
-	irmod.pprint()
-
-
-def mainWithFancyExcept():
+def main():
 	try:
 		_main()
+	except AstTranslator.UserProgramError as e:
+		print e
 	except:
-		print_exc_plus()
-		exit(1)
-
-
-def main():
-	if len(sys.argv) == 3:
-		mainWithFancyExcept()
-	else:
-		_main()
+		if len(sys.argv) == 3: print_exc_plus()
+		else: raise
 
 if __name__ == '__main__':
 	main()
