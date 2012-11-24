@@ -1,13 +1,6 @@
 from utils import *
 from IR import *
 
-class Environment(object):
-	def __init__(self, irenv):
-		self.ns = irenv
-		self.gottenVars = set()
-		self.setVars = set()
-		self.declaredGlobals = set()
-
 class UserProgramError(Exception):
 	pass
 
@@ -99,6 +92,13 @@ class BaseTranslator(object):
 			"tried to emit %s" % s
 			
 		s.currentBlock().append(op)
+
+	def op(s, opclass):
+		temp = s.getNewTemporary()
+		def maker(*components, **kwcomponents):
+			op = opclass(*([temp] + list(components)), **kwcomponents)
+			return op
+		return maker
 		
 	#code generation infastructure
 	def buildBlock(s, block, stmts):

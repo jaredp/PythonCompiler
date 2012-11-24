@@ -16,9 +16,13 @@ def getAllSlots(cls):
 class IRNode(object):
 	def __init__(self, *args, **kwparams):
 		if args != ():
-			vals = zip(self.slots(), args) + kwparams.items()
+			slots = self.slots()
+			assert len(slots) == len(args),	\
+				"wrong components %s to %s's %s" % (args, self.name(), slots)
+			vals = zip(slots, args)
 		else:
 			vals = kwparams.items()
+		
 		for (key, val) in vals:
 			setattr(self, key, val)
 	
@@ -34,15 +38,19 @@ class IRNode(object):
 			if hasattr(self, slot)
 		]
 	
+	def name(self):
+		return self.__class__.__name__
+
 	def __repr__(self):
-		classname = self.__class__.__name__
 		attrs = ['%s = %s' % attr for attr in self.contents()]
 		attrsRep = ', '.join(attrs)
-		return '<%s of %s>' % (classname, attrsRep)
+		nodename = self.name()
+		if attrsRep == '': return nodename
+		return '<%s of %s>' % (nodename, attrsRep)
 
 import utils
 
-class IRVar(IRNode):
+class _IRVar(IRNode):
 	value = None
 	# use if there's some kind of constant value, like a class, function, or potentially literal
 	
@@ -55,6 +63,7 @@ class IRVar(IRNode):
 	def __init__(self, nameSuggestion=''):
 		self.num = utils.nextUniqueNum
 		self.name = utils.uniqueID(nameSuggestion)
+		self.unifiedVar = self
 	
 	def __eq__(lhs, rhs):
 		return lhs.num == rhs.num
@@ -62,7 +71,7 @@ class IRVar(IRNode):
 	def isActually(lhs, rhs):
 		lhs.num = rhs.num
 		lhs.name = rhs.name
-		lhs.unifiedVar = rhs
+		lhs.unifiedVar = rhs.unifiedVar
 		#probably something with values/types but that's beyond here
 	
 	def __repr__(self):

@@ -61,7 +61,6 @@ import controlFlowTranslator
 import definitionTranslator
 import functionTranslator
 import generatorTranslator
-import getterTranslator
 import literalTranslator
 import operationTranslator
 import unimplementedTranslator

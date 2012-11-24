@@ -1,0 +1,23 @@
+
+Packages are unimplemented -- lookups are complicated, but route
+No plans to support multiple inheritance
+No plans to support metaclasses
+Actually, no plans to support inheritance
+New-style classes only, (even though it doesn't make a difference)
+__slots__ is just more work
+
+I'm not even sure what Elipsis does, or ExtSlice
+We're just going to do subscript and slices[start:end]
+
+Yo, deal with builtins
+
+I'm considering using closures for captures
+this may be a code generation issue
+
+We're almost certainly not going to support cyclicic gc at this point
+
+So apparently globals() and locals() are normal functions, that just so happen to look at their calling frame.  One way or another, I think we'll have to maintain an explicit stack
+If we're lucky, we can use C++'s.  Because of this, I'm making the assumption that globals() or locals() can be called anywhere, anytime.
+Some analysies will simply not run on any program that uses globals or locals anywhere.  The analysis to determine locals/globals usage is just too complicated to be complete, even if it is extremely conservative, and it's super edgecase-ish.
+
+Ok so one good thing is that globals/locals are in __builtins__, which aren't actually in globals() by default.  Thus, we can *probably* just track if globals/locals are gotten but not immidiately called.  Even doing so, there are some caveats, mostly from doing something to get all of __builtins__, which can lead to globals/locals escaping to the outside world.

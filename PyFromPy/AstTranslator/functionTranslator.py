@@ -19,14 +19,14 @@ class Functions:
 		if dest == None:
 			for vAst in values:
 				arg = s.translateExpr(vAst)
-				s.emit(PrintBuiltin.callVoidOp(arg))
+				s.emit(stdlib.MyPrint(None, arg))
 		else:
 			destination = translateExpr(dest)
 			for vAst in values:
 				arg = s.translateExpr(vAst)
-				s.emit(PrintBuiltinTo.callVoidOp(destination, arg))
+				s.emit(stdlib.PyPrint(None, destination, arg))
 		if nl:
-			s.emit(PrintNLBuiltin.callVoidOp())
+			s.emit(stdlib.PyPrintNl(None))
 
 
 	def _Repr(s, value):

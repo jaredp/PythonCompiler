@@ -1,5 +1,5 @@
 
-from IR.base import IRNode, IRVar
+from IR.base import IRNode, _IRVar
 
 def _subclass(superclass, subclasses):
 	bases = (superclass,)
@@ -13,10 +13,9 @@ def _subclass(superclass, subclasses):
 #############################################################
 
 _subclass(IRNode, {
-	'IRArg': [],		# argument to operation
+	'IRAtom': [],		# argument to operation
 	'IROperation': [],	
 	'IRBlock': [],
-	'IREnvironment': ['namespace', 'docstring'],
  })
 
 # all code blocks are non-None [IROperation|IRBlock]
@@ -28,12 +27,13 @@ _subclass(IRBlock, {
 	# type(catch) = None|(exception (pyname), as (pyname), handler (code block))
 })
 
-_subclass(IRArg, {
-	'IRVarRef': ['var'],# type(var) = IRVar
+_subclass(IRAtom, {
 	'IRStringLiteral': ['value'],
 	'IRIntLiteral': ['value'],
 	'IRFloatLiteral': ['value'],
+	'NoneLiteral': []
 })
+class IRVar(IRAtom, _IRVar): pass
 
 _subclass(IROperation, {
 	# majority of OPs are IRProducingOps, meaning they produce something
@@ -44,13 +44,16 @@ _subclass(IROperation, {
 	'Yield': ['value'],
 	'Raise': ['exception'],
 		
-	'AttrSetter': ['attr'],
-	'SubscriptSetter': ['slice'],	# no idea what this is yet / several options
+	'AssignAttr': ['obj', 'attr', 'value'],
+	'AssignSubscript': ['obj', 'subscript', 'value'],
+	'AssignSlice': ['obj', 'start', 'end', 'step', 'value'],
+	# start, end, and step can be None
 	
 	'DeleteVar': ['var'],			# IRVar
-	#figure these out later
-	'DeleteAttr': [],
-	'DeleteSlice': [],
+	'DeleteAttr': ['obj', 'attr'],
+
+	'DeleteSubscript': ['obj', 'subscript'],
+	'DeleteSlice': ['obj', 'start', 'end', 'step'],
 })
 
 _subclass(IRProducingOp, {
@@ -64,23 +67,19 @@ _subclass(IRProducingOp, {
 	# type(fn) = IRFunction
 	'ConstCall': ['fn', 'args'],
 	
-	'Subscript': ['slice'],
-	'Attr':	['attr'],
-
 	'Assign': ['rhs'],
+	'Attr':	['obj', 'attr'],
+	'Subscript': ['obj', 'subscript'],
+	'Slice': ['obj', 'start', 'end', 'step'],
 	
+	# context dependant
 	'GetGeneratorSentIn': [],	# x = yield
 	'GetLocals': [],			# locals(), but locals can be assigned
 	'GetGlobals': [],			# globals(), but globals can be assigned
 	
-	'GetModule': ['module'],	# type(module) = IRModule
+	'GetModule': ['module'],	# used for imports; type(module) = IRModule
 	'MakeFunction': ['code', 'defaults', 'closures'],	# type(code) = IRFunction
-	'MakeClass': ['name', 'superclasses'],
-	
-	#these are actually builtin functions, but they may be assigned to...
-	'GetType': ['inspected'],		# type(inspected)
-	'Iter': ['arg'],
-	'Next': ['arg']
+	'MakeClass': ['name', 'superclasses']
 })
 '''
 _subclass(BinOp, op, []) for op in [
@@ -99,56 +98,4 @@ _subclass(UnaryOp, op, []) for op in [
 	'Invert', 'Not', 'UAdd', 'USub'
 ]]
 '''
-# pyname is the label for something in python, represented as a string
 
-class Namespace(object):
-	__slots__ = [
-		'members',			# {pyname -> IRVar}
-		'temporaries',		# set(IRVar)
-		'isExpandable',		# bool
-	]
-	
-	def __init__(self, expandable=False):
-		self.members = {}
-		self.temporaries = set()
-		self.isExpandable = expandable
-
-	def newTemporary(self):
-		#FIXME: be careful how you use this; could be messy on IRVar.merge
-	
-		t = IRVar()
-		self.temporaries.add(t)
-		return t
-
-_subclass(IREnvironment, {
-	'IRFunction': [
-		'cname',		#C name
-		'pyname',		#name defined in Python
-		'body',			#codeblock, or None for builtins
-		
-		'args',			# pynames in namespace.members
-		'varargs',
-		'kwargs',
-				   
-		'defaults',		# [IRVars] ?
-		'captures',		# [IRVars] ?
-		'globals',
-		
-		#flags
-		'isgenerator',
-		
-		#types
-	],
-	
-	'IRClass': [
-		'name',			#C name
-		'definedname',	#name defined in Python
-		#types
-	],
-	
-	'IRModule': [
-		'functions',	# [IRFunction]
-		'classes',		# [IRClass]
-		'toplevel'		# code block
-	],
-})
