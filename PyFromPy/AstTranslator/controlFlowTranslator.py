@@ -56,15 +56,27 @@ class ControlFlow:
 
 		if orelse == []:
 			i = stdlib.Iter(t(iter))
-			try_ = Try([
-				Loop([], noemit=True)
-			], stdlib.StopIterationException, [], noemit=True)
-			with IRBlock(try_.body[0].body):
-				t.makeAssignment(target, stdlib.Next(i))
+			loop = Loop([], noemit=True)
+			with IRBlock(loop.body):
+				try_ = Try([
+					# target = next(i)
+				], stdlib.StopIterationException, [Break(noemit=True)], noemit=True)
+				with IRBlock(try_.body):
+					t.makeAssignment(target, stdlib.Next(i))
+				emit(try_)
+
 				t.translateStmts(body) 
-
-			emit(try_)
-
+			emit(loop)
+			
+			# make that this
+			'''
+			with Loop():
+				with Try as try_:
+					t.makeAssignment(target, stdlib.Next(i))
+				with try_.handle(stdlib.StopIterationException):
+					Break()
+				t.translateStmts(body)
+			'''
 		else:
 			# this is depressingly involved
 			raise NotImplementedError
