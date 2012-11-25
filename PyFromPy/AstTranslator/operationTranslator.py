@@ -8,6 +8,9 @@ class Operations:
 	def _BoolOp(s, op, values):
 		raise NotImplementedError
 		
+	def _AugAssign(s, target, op, value):
+		raise NotImplementedError
+
 	def _BinOp(s, left, op, right):
 		raise NotImplementedError
 				

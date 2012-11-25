@@ -55,6 +55,21 @@ def _pprintIf(op):
 	_print_indented('else:')
 	_printBlockIndented(op.orelse)
 
+@pprinter(Loop)
+def _pprintWhile(op):
+	_print_indented('loop:')
+	_printBlockIndented(op.body)
+
+@pprinter(Try)
+def _pprintTry(op):
+	_print_indented('try:')
+	_printBlockIndented(op.body)
+	if op.exception:
+		_print_indented('except %s:' % op.exception)
+	else:
+		_print_indented('except:')
+	_printBlockIndented(op.handler)
+
 @pprinter(FCall)
 @pprinter(ConstCall)
 def _pprintCall(call):

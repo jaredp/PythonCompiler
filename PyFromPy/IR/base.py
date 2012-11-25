@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 
 def getAllSlots(cls):
 	slots = []
@@ -18,6 +19,12 @@ def enterBlock(block):	activeBlockStack.append(block)
 def leaveBlock():		activeBlockStack.pop()
 def currentBlock():		return activeBlockStack[-1]
 def emit(op):			currentBlock().append(op)
+
+@contextmanager
+def IRBlock(block):
+	enterBlock(block)
+	yield
+	leaveBlock()
 
 #############################################################
 # Basic Nodes

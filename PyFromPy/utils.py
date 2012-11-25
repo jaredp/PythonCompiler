@@ -19,6 +19,9 @@ def flattenList(l):
 	for i in l:
 		for j in i:
 			yield j
+
+def numbered(l):
+	return zip(range(len(l)), l)
 			
 #http://stackoverflow.com/a/4578605/257261
 def partition(pred, iterable):
@@ -44,6 +47,7 @@ def uniqueID(suggestion=''):
 
 #############################################################
 # Pattern matching
+# doesn't currently support slots
 #############################################################
 
 __, ___ = ig, igs  = object(), object()

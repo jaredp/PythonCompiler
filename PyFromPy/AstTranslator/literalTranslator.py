@@ -1,6 +1,7 @@
 
 from IR import *
 from BaseTranslator import translatorMixin
+from utils import numbered
 
 @translatorMixin
 class Literals:
@@ -11,26 +12,33 @@ class Literals:
 			return IRFloatLiteral(n)
 		
 	def _Str(this, s):
-		raise IRStringLiteral(s)
+		return IRStringLiteral(s)
 		
-	def _List(s, elts, ctx):
-		raise NotImplementedError
-
-	def _Tuple(s, elts, ctx):
-		size = len(elts)
-		t = s.getNewTemporary()
-		s.emit(stdlib.MakeTuple(t, IRIntLiteral(size)))
-		i = 0
+	def _List(t, elts, ctx):
+		s = stdlib.NewList(IRIntLiteral(len(elts)))
 		for elt in elts:
-			c = s.translateExpr(elt)
-			s.emit(s.op(stdlib.SetTupleComponent)(t, IRIntLiteral(i), c))
-			i += 1
-		return t
+			stdlib.ListAppend(s, t(elt))
+		return s
+
+	def _Tuple(t, elts, ctx):
+		tup = stdlib.MakeTuple(IRIntLiteral(len(elts)))
+		for (i, elt) in numbered(elts):
+			stdlib.SetTupleComponent(tup, IRIntLiteral(i), t(elt))
+		return tup
 	
-	def _Set(s, elts):
-		raise NotImplementedError
+	def _Set(t, elts):
+		s = stdlib.NewSet(IRIntLiteral(len(elts)))
+		for elt in elts:
+			stdlib.SetAdd(s, t(elt))
+		return s
 	
-	def _Dict(s, keys, values):
-		raise NotImplementedError
-				
+	def _Dict(t, keys, values):
+		size = len(keys)
+		assert size == len(values)
+
+		d = stdlib.NewDict(IRIntLiteral(size))
+		for (key, value) in zip(keys, values):
+			stdlib.DictSet(d, t(key), t(value))
+		return d
+
 	

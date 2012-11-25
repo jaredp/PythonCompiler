@@ -4,32 +4,31 @@ from BaseTranslator import translatorMixin
 
 @translatorMixin
 class Functions:	
-	def _Call(s, func, args, keywords, starargs, kwargs):
+	def _Call(t, func, args, keywords, starargs, kwargs):
 		return FCall(
-			s.getNewTemporary(),
-			s.translateExpr(func),
-			[s.translateExpr(arg) for arg in args],
-			[(kw, s.translateExpr(arg)) for (kw, arg) in keywords],
-			s.translateExpr(starargs) if starargs else None,
-			s.translateExpr(kwargs) if kwargs else None
+			t(func),
+			[t(arg) for arg in args],
+			[(kw, t(arg)) for (kw, arg) in keywords],
+			t(starargs) if starargs else None,
+			t(kwargs) if kwargs else None
 		)
 	
 		
-	def _Print(s, dest, values, nl):
+	def _Print(t, dest, values, nl):
 		if dest == None:
 			for vAst in values:
-				arg = s.translateExpr(vAst)
-				s.emit(stdlib.MyPrint(None, arg))
+				stdlib.MyPrint(t(vAst))
+
 		else:
-			destination = translateExpr(dest)
+			destination = t(dest)
 			for vAst in values:
-				arg = s.translateExpr(vAst)
-				s.emit(stdlib.PyPrint(None, destination, arg))
+				stdlib.PyPrint(destination, t(vAst))
+
 		if nl:
-			s.emit(stdlib.PyPrintNl(None))
+			stdlib.PyPrintNl()
 
 
-	def _Repr(s, value):
-		raise NotImplementedError
+	def _Repr(t, value):
+		return stdlib.Repr(t(value))
 
 

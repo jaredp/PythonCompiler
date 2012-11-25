@@ -64,12 +64,14 @@ class BaseTranslator(object):
 		return maker
 	'''		
 	#code generation infastructure
-	def buildBlock(s, block, stmts):
-		enterBlock(block)
+	def translateStmts(s, stmts):
 		for line in stmts:
 			s.translateLine(line)
-		leaveBlock()
-	
+
+	def buildBlock(s, block, stmts):
+		with IRBlock(block):
+			s.translateStmts(stmts)
+			
 	def translateBlock(s, astblock):
 		irblock = []
 		s.buildBlock(irblock, astblock)
@@ -84,7 +86,7 @@ class BaseTranslator(object):
 		meth = getattr(s, '_'+astexpr.__class__.__name__)
 		s.trackPosition(astexpr)
 		return meth(**astexpr.__dict__)
-	translate = translateExpr
+	__call__ = translate = translateExpr
 
 	def _Expr(s, value):
 		# NOTE: Do not return this; translateExpr emits it

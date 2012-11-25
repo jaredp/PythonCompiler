@@ -7,13 +7,9 @@ class BuiltinFn(IRFunction):
 		self.args = list(args)
 		globals()[fname] = self
 
-	def call(this, dest, *args):
-		return ConstCall(dest, this, list(args))
-	__call__ = call
+	def __call__(this, *args):
+		return ConstCall(this, list(args))
 
-	def callVoid(this, *args):
-		return this(None, *args)
-	
 	def __repr__(this):
 		return this.cname
 
@@ -29,3 +25,28 @@ BuiltinFn('Next', 'iterator')
 
 BuiltinFn('Globals')
 BuiltinFn('Locals')
+
+BuiltinFn('Repr', 'obj')
+
+BuiltinFn('NewList', 'size')
+BuiltinFn('ListAppend', 'member')
+
+BuiltinFn('NewSet', 'size')
+BuiltinFn('SetAdd', 'member')
+
+BuiltinFn('NewDict', 'size')
+BuiltinFn('DictSet', 'dict', 'key', 'value')
+
+class BuiltinException(object):
+	'''
+	figuring this out would mean figuring out types in the IR
+	We're not there yet
+	'''
+	def __init__(self, ename):
+		self.ename = ename
+		globals()[ename] = self
+
+	def __repr__(self):
+		return self.ename
+
+BuiltinException('StopIterationException')

@@ -80,12 +80,12 @@ class Names:
 
 	def _Assign(s, targets, value):
 		rhstemp = s.translateExpr(value)
-		return s.makeAssignment(targets, rhstemp)
-		
-	def _AugAssign(s, target, op, value):
-		raise NotImplementedError
+		return s.makeAssignments(targets, rhstemp)
 	
-	def makeAssignment(s, asttargets, irrhs):
+	def makeAssignment(s, asttarget, irrhs):
+		s.makeAssignments([asttarget], irrhs)
+
+	def makeAssignments(s, asttargets, irrhs):
 		unpackAsgns = []
 	
 		for target in asttargets:
@@ -128,6 +128,6 @@ class Names:
 			
 			for cAsgn in zip(*unpackAsgns):
 				component = stdlib.Next(iterator)
-				s.makeAssignment(cAsgn, component)
+				s.makeAssignments(cAsgn, component)
 
 

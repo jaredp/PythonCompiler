@@ -14,16 +14,16 @@ def _subclass(superclass, subclasses):
 _subclass(IRNode, {
 	#'IRAtom': [],		# argument to operation, defined in base.py
 	'IROperation': [],	
-	'IRBlock': [],
+	'IRBlockStatement': [],
  })
 
-# all code blocks are non-None [IROperation|IRBlock]
+# all code blocks are non-None [IROperation|IRBlockStatement]
 
-_subclass(IRBlock, {
+_subclass(IRBlockStatement, {
 	'If': ['condition', 'then', 'orelse'],	# condition is an IRAtom
-	'While': ['condition', 'body'],
-	'Try': ['body', 'catch', 'finally']
-	# type(catch) = None|(exception (pyname), as (pyname), handler (code block))
+	'Loop': ['body'],
+	'Try': ['body', 'exception', 'handler']
+	# type(exception) = None|BuiltinException|IRVar
 })
 
 _subclass(IRAtom, {
@@ -40,8 +40,11 @@ _subclass(IROperation, {
 	
 	'Return': ['value'],
 	'Yield': ['value'],
-	'Raise': ['exception'],
-		
+	'Raise': ['exception'],			# type(exception) = IRAtom|IRExceptionBuiltin|None
+	
+	'Break': [],
+	'Continue': [],
+
 	'AssignAttr': ['obj', 'attr', 'value'],
 	'AssignSubscript': ['obj', 'subscript', 'value'],
 	'AssignSlice': ['obj', 'start', 'end', 'step', 'value'],
@@ -71,7 +74,9 @@ _subclass(IRProducingOp, {
 	'Slice': ['obj', 'start', 'end', 'step'],
 	
 	# context dependant
-	'GetGeneratorSentIn': [],	# x = yield
+	'GetGeneratorSentIn': [],	# target = yield
+	'GetException': [],			# except Exception as target: ...
+
 	'GetLocals': [],			# locals(), but locals can be assigned
 	'GetGlobals': [],			# globals(), but globals can be assigned
 	

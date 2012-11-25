@@ -22,3 +22,14 @@ Some analysies will simply not run on any program that uses globals or locals an
 
 Ok so one good thing is that globals/locals are in __builtins__, which aren't actually in globals() by default.  Thus, we can *probably* just track if globals/locals are gotten but not immidiately called.  Even doing so, there are some caveats, mostly from doing something to get all of __builtins__, which can lead to globals/locals escaping to the outside world.
 
+
+yield in a try-finally.  Do you even know what/how that works?
+
+I don't think we're supporting tracebacks.  Sorry.
+
+With statements aren't implemented, but just because they're Try/Catch, and would take uneccessary work.
+
+The orelse clauses of for and while statements are currently unimplemented.  A description of how I would handle them is given in controlFlowTranslator.py
+
+BIG ONE:
+a return in a try happens *AFTER* the finally clause.  I don't think C++ does this, and this is actually not that trivial to translate to the target language.  The IR assumes C semantics.  I think I'll rely on an IR transform to make this behave according to Python semantics.
