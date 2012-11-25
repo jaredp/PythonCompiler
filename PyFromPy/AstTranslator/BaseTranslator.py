@@ -4,108 +4,71 @@ from IR import *
 class UserProgramError(Exception):
 	pass
 
+program = Program()
+
 class BaseTranslator(object):
 	def __init__(s, astmodule):
 		s.linenum = s.colnum = 0
-		s.codeBlockStack = []
-		s.module = IRModule(
-			namespace = Namespace(True),
-			docstring = None,
-			functions = [],
-			classes = [],
-			toplevel = [],
-		)
-		s.environmentStack = []
-		s.enterEnvironment(s.module)
-		s.buildBlock(s.module.toplevel, astmodule.body)
 
-	#environment stack (namespace)
-	def enterEnvironment(s, env):
-		# (IREnvironment env, set(string) gottenVars, set(string) locals)
-		s.environmentStack.append((env, set(), set()))
-	
-	def leaveEnvironment(s):
-		s.environmentStack.pop()
-	
-	def currentEnvironment(s):
-		return s.environmentStack[-1]
-		
-	def setDocstring(s, docstring):
-		env, _, _ = s.currentEnvironment()
-		env.docstring = docstring
-		
-	#references
+		s.module = IRModule('__main__')
+		program.modules.add(s.module)
+		program.codes.add(s.module.initcode)
+
+		s.namespace = {}			# pyname -> IRVar
+		s.assignedVars = set()		# {pyname}
+		s.explicitGlobals = set()	# {pyname}
+
+		s.buildBlock(s.module.initcode.body, astmodule.body)
+
+	def currentModule(s):
+		return s.currentModule
+
+	def error(s, errmsg):
+		raise UserProgramError(
+			'error: %s in %s at %s:%s' %
+			(errmsg, s.currentModule(), s.linenum, s.colnum)
+		)
+
+	def runtimeError(s, errmsg):
+		# this actually isn't the proper sig, but w/e for now
+		# also, FIXME, raise or something
+		s.error(errmsg)
+
 	def getVarNamed(s, pyname):
-		#FIXME: need to handle captures!
-		env, gotten, _ = s.currentEnvironment()
-		ns = env.namespace.members
-		if pyname in ns:
-			var = ns[pyname]
-		else:
-			var = IRVar(pyname)
-			ns[pyname] = var
-		gotten.add(pyname)
-		return var
+		if pyname not in s.namespace:
+			s.namespace[pyname] = IRVar(pyname)
+		return s.namespace[pyname]
 		
 	def getTargetNamed(s, pyname):
-		#if set, will always be local!
-		env, _, lcls = s.currentEnvironment()
-		ns = env.namespace.members
-		if pyname in ns:
-			var = ns[pyname]
-		else:
-			var = IRVar(pyname)
-			ns[pyname] = var
-		lcls.add(pyname)
-		return var
-
-	def getNewTemporary(s):
-		env, _, _ = s.currentEnvironment()
-		return env.namespace.newTemporary()
+		s.assignedVars.add(pyname)
+		return s.getVarNamed(pyname)
 	
-	def declareGlobal(s):
-		pass
+	def declareGlobal(s, gbl):
+		s.explicitGlobals.add(gbl)
 		
 	#error handling
 	def trackPosition(s, astobj):
 		s.linenum = astobj.__dict__.pop('lineno', None)
 		s.colnum = astobj.__dict__.pop('col_offset', None)
 
-	def error(s, errmsg):
-		raise UserProgramError('error: %s at %s:%s' % (errmsg, s.linenum, s.colnum))
-
-	#code block stack
-	def enterBlock(s, block):
-		s.codeBlockStack.append(block)
-		
-	def leaveBlock(s):
-		s.codeBlockStack.pop()
-		
-	def currentBlock(s):
-		return s.codeBlockStack[-1]
-		
-	def isInGlobalBlock(s):
-		return currentBlock(s) == s.module.loadfn
-		
 	def emit(s, op):
 		assert isinstance(op, IROperation) or isinstance(op, IRBlock),	\
 			"tried to emit %s" % s
-			
-		s.currentBlock().append(op)
-
+		emit(op)
+	'''
 	def op(s, opclass):
 		temp = s.getNewTemporary()
 		def maker(*components, **kwcomponents):
 			op = opclass(*([temp] + list(components)), **kwcomponents)
 			return op
 		return maker
-		
+	'''		
 	#code generation infastructure
 	def buildBlock(s, block, stmts):
-		s.enterBlock(block)
+		enterBlock(block)
 		for line in stmts:
 			s.translateLine(line)
-		s.leaveBlock()
+		leaveBlock()
 	
 	def translateBlock(s, astblock):
 		irblock = []
@@ -115,18 +78,13 @@ class BaseTranslator(object):
 	def translateLine(s, aststmt):
 		meth = getattr(s, '_'+aststmt.__class__.__name__)
 		s.trackPosition(aststmt)
-		op = meth(**aststmt.__dict__)
-		if op: s.emit(op)
+		meth(**aststmt.__dict__)
 	
 	def translateExpr(s, astexpr):
 		meth = getattr(s, '_'+astexpr.__class__.__name__)
 		s.trackPosition(astexpr)
-		op = meth(**astexpr.__dict__)
-		if isinstance(op, IROperation):
-			s.emit(op)
-			return op.target
-		else:	# op is an IRArg
-			return op
+		return meth(**astexpr.__dict__)
+	translate = translateExpr
 
 	def _Expr(s, value):
 		# NOTE: Do not return this; translateExpr emits it

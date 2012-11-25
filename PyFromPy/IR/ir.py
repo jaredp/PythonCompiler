@@ -1,5 +1,4 @@
-
-from IR.base import IRNode, _IRVar
+from IR.base import IRNode, IRAtom, IRVar
 
 def _subclass(superclass, subclasses):
 	bases = (superclass,)
@@ -13,7 +12,7 @@ def _subclass(superclass, subclasses):
 #############################################################
 
 _subclass(IRNode, {
-	'IRAtom': [],		# argument to operation
+	#'IRAtom': [],		# argument to operation, defined in base.py
 	'IROperation': [],	
 	'IRBlock': [],
  })
@@ -33,7 +32,6 @@ _subclass(IRAtom, {
 	'IRFloatLiteral': ['value'],
 	'NoneLiteral': []
 })
-class IRVar(IRAtom, _IRVar): pass
 
 _subclass(IROperation, {
 	# majority of OPs are IRProducingOps, meaning they produce something

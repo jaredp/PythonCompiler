@@ -24,3 +24,8 @@ BuiltinFn('PyPrintNl')
 BuiltinFn('MakeTuple', 'size')
 BuiltinFn('SetTupleComponent', 'tuple', 'index', 'value')
 
+BuiltinFn('Iter', 'container')
+BuiltinFn('Next', 'iterator')
+
+BuiltinFn('Globals')
+BuiltinFn('Locals')

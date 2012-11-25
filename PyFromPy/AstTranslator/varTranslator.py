@@ -6,12 +6,8 @@ from BaseTranslator import translatorMixin
 @translatorMixin
 class Names:
 	def _Global(s, names):
-		if s.isInGlobalBlock():
-			s.error("global declaration in global scope")
-		
 		for name in names:
-			pass
-
+			s.declareGlobal(name)
 
 	def _Name(s, id, ctx):
 		if id == 'None':
@@ -21,7 +17,7 @@ class Names:
 
 	def _Attribute(s, value, attr, ctx):
 		obj = s.translateExpr(value)
-		return Attr(s.getNewTemporary(), obj, attr)
+		return Attr(obj, attr)
 
 	def translateSlice(s, slice):
 		if slice.lower:
@@ -39,14 +35,16 @@ class Names:
 		return (start, end, step)
 
 	def _Subscript(s, value, slice, ctx):
-		obj = s.translateExpr(value)
 		if isinstance(slice, ast.Index):
-			index = s.translateExpr(slice.value)
-			return s.op(Subscript)(obj, index)
+			return Subscript(
+				s.translateExpr(value),
+			 	s.translateExpr(slice.value)
+			 )
 
 		elif isinstance(slice, ast.Slice):
+			obj = s.translateExpr(value)
 			start, end, step = s.translateSlice(slice)
-			return s.op(Slice)(obj, start, end, step)
+			return Slice(obj, start, end, step)
 
 		else:
 			raise NotImplementedError
@@ -92,46 +90,44 @@ class Names:
 	
 		for target in asttargets:
 			if isinstance(target, ast.Name):
-				irtarget = s.getTargetNamed(target.id)
-				s.emit(Assign(irtarget, irrhs))
+				Assign(
+					target=s.getTargetNamed(target.id), 
+					rhs=irrhs
+				)
 				
 			elif isinstance(target, ast.Attribute):
 				#we're not assigning to the target, so we don't add it to locals
-				irobj = s.translateExpr(target.value)
-				s.emit(AssignAttr(irobj, target.attr, irrhs))
+				AssignAttr(
+					s.translateExpr(target.value),
+					target.attr,
+					irrhs
+				)
 				
-			elif isinstance(target, ast.Subscript):
-				obj = s.translateExpr(target.value)
-
-				if isinstance(target.slice, ast.Index):
-					index = s.translateExpr(target.slice.value)
-					s.emit(AssignSubscript(obj, index, irrhs))
-				
-				elif isinstance(target.slice, ast.Slice):
-					start, end, step = s.translateSlice(target.slice)
-					s.emit(AssignSlice(obj, start, end, step, irrhs))
-				
-				else:
-					raise NotImplementedError
+			elif isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Index):
+				AssignSubscript(
+					s.translateExpr(target.value), 
+					s.translateExpr(target.slice.value), 
+					irrhs
+				)
 			
+			elif isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Slice):
+				obj = s.translateExpr(target.value)
+				start, end, step = s.translateSlice(target.slice)
+				AssignSlice(obj, start, end, step, irrhs)
+				
 			elif type(target) in [ast.List, ast.Tuple]:
 				unpackAsgns.append(target.elts)
+
+			else: raise NotImplementedError
 			
 		if len(unpackAsgns) > 0:
-			#FIXME: wrong error would be thrown on unpacking
-			#wrong # of compoents at runtime, I think.  May want to add OP
-		
-			iterator = s.getNewTemporary()
-			s.emit(Iter(target=iterator, arg=irrhs))
-			componentCount = len(unpackAsgns[0])
-			if not all([len(upa) == componentCount for upa in unpackAsgns]):
-				#TODO: make this runtime?
-				s.error('too many/not enough values to unpack')
+			iterator = stdlib.Iter(irrhs)
 			
-			componentsTargets = zip(*unpackAsgns)
-			for cAsgn in componentsTargets:
-				component = s.getNewTemporary()
-				s.emit(Next(target=component, arg=iterator))
+			if not all([len(upa) == len(unpackAsgns[0]) for upa in unpackAsgns]):
+				s.runtimeError('too many/not enough values to unpack')
+			
+			for cAsgn in zip(*unpackAsgns):
+				component = stdlib.Next(iterator)
 				s.makeAssignment(cAsgn, component)
 
 

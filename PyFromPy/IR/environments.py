@@ -1,5 +1,6 @@
 from base import IRNode
 from ir import IRVar
+from utils import uniqueID
 
 class Namespace(object):
 	__slots__ = [
@@ -24,8 +25,12 @@ class Namespace(object):
 		self.temporaries.add(t)
 		return t
 
-	
-class IRFunction(IRNode):
+	def __repr__(self):
+		return repr(self.members)
+
+
+class IRFunction(object):
+	'''Abstract base class of IRCode and IRBuiltinFunction (stdlib.py)'''
 	__slots__ = [
 		'cname',		# C name		
 		'args',			# pynames in namespace.members
@@ -63,23 +68,49 @@ class IRCode(IRFunction):
 		'namespace',	# locals, globals, captures, defaults
 	]
 
-class IRClass(IRNode): __slots__ = [
+	def __init__(self, pyname):
+		self.cname = uniqueID(pyname)
+		self.pyname = pyname
+		
+		self.body = []
+		self.namespace = Namespace(expandable=False)
+		
+		# some reasonable defaults
+		self.defaults = {}
+		self.isgenerator = False
+
+
+class IRClass(object): __slots__ = [
 	'name',			#C name
 	'definedname',	#name defined in Python
 	#types
 ]
 	
-class IRModule(IRNode): __slots__ = [
-	'namespace',
-	'initcode'		# code block
-]
+class IRModule(object): 
+	__slots__ = [
+		'name',
+		'docstring',
 
-class Program(IRNode): __slots__ = [
-	'codes',	# [IRCode]
-	'classes',	# [IRClass]
-	'modules',	# [IRModule]
-	'initcode',	# IRVar to something that should be in codes
-]
+		'namespace',
+		'initcode'		# code block
+	]
+
+	def __init__(self, name):
+		self.docstring = None
+		self.name = name
+
+		self.namespace = Namespace(expandable=True)
+		self.initcode = IRCode('load'+name)
+
+		# this both doesn't make sense and doesn't matter
+		self.initcode.module = self 
+
+
+class Program(object):
+	codes = set()		# {IRCode}
+	classes = set()		# {IRClass}
+	modules = set()		# {pyname: IRModule}
+	initcode = None		# main module's initcode`
 
 
 

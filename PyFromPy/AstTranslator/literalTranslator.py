@@ -19,13 +19,13 @@ class Literals:
 	def _Tuple(s, elts, ctx):
 		size = len(elts)
 		t = s.getNewTemporary()
-		s.emit(stdlib.MakeTuple(t, IRIntLiteral(size))
+		s.emit(stdlib.MakeTuple(t, IRIntLiteral(size)))
 		i = 0
 		for elt in elts:
 			c = s.translateExpr(elt)
 			s.emit(s.op(stdlib.SetTupleComponent)(t, IRIntLiteral(i), c))
 			i += 1
-		return t.target
+		return t
 	
 	def _Set(s, elts):
 		raise NotImplementedError

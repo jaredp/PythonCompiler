@@ -2,6 +2,7 @@
 from BaseTranslator import translatorMixin, getTranslator
 
 import ast
+from IR import *
 
 def translate(astmodule):
 	return Translator(astmodule).module
@@ -31,7 +32,7 @@ class ImportTranslator(object):
 	# General FIXME/TODO/UNHANDLED: packages are compeletely unsupported
 	def lookupModule(s, mname):
 		#FIXME: this is actually fairly complex
-		return mname + '.py'
+		return mname.replace('.', '/') + '.py'
 	
 	def translateModule(s, mname):
 		try:
@@ -40,22 +41,32 @@ class ImportTranslator(object):
 			s.error("no module named %s" % mname)
 			
 	def _Import(s, names):
-		for (mname, asname) in names:
-			module = s.translateModule(mname)
-			if asname == None:
-				asname = mname
-			s.emit(GetModule(asname, module))
+		for alias in names:
+			asname = alias.asname or alias.name
+			target = s.getTargetNamed(asname)
+			module = s.translateModule(alias.name)
+			s.emit(GetModule(target, module))
 
 	def _ImportFrom(s, module, names, level):
 		# no packages -> ignore level
 		# TODO: from _ import *
-		module = s.translateModule(module)
-		for (name, asname) in names:
-			copyop = Assign(
-				s.setTargetNamed(asname),
-				module.getVarNamed(name)
-			)
-			s.emit(copyop)
+		m = s.getNewTemporary()
+		s.emit(GetModule(m, s.translateModule(module)))
+
+		if len(names) == 1 and names[0].name == '*':
+			# from foo import *
+			'''
+			future strategy:
+			import foo as $0
+			globals().append($0.__dict___)
+			'''
+			raise NotImplementedError
+
+		for alias in names:
+			asname = s.getTargetNamed(alias.asname or alias.name)
+			member = s.getNewTemporary()
+			s.emit(Attr(member, m, alias.name))
+			s.emit(Assign(asname, member))
 
 import controlFlowTranslator
 import definitionTranslator

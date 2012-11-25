@@ -10,22 +10,41 @@ def getAllSlots(cls):
 	return slots
 		
 #############################################################
+# IR Building
+#############################################################
+
+activeBlockStack = []
+def enterBlock(block):	activeBlockStack.append(block)
+def leaveBlock():		activeBlockStack.pop()
+def currentBlock():		return activeBlockStack[-1]
+def emit(op):			currentBlock().append(op)
+
+#############################################################
 # Basic Nodes
 #############################################################
 
 class IRNode(object):
-	def __init__(self, *args, **kwparams):
-		if args != ():
-			slots = self.slots()
-			assert len(slots) == len(args),	\
-				"wrong components %s to %s's %s" % (args, self.name(), slots)
-			vals = zip(slots, args)
+	def __new__(cls, *args, **kwargs):
+		self = object.__new__(cls)
+		noemit = kwargs.pop('noemit', False)
+		slots = self.slots()
+
+		if 'target' in slots:
+			self.target = kwargs.pop('target', None) or IRVar()
+			slots.remove('target')
+			ret = self.target
 		else:
-			vals = kwparams.items()
+			ret = self
 		
-		for (key, val) in vals:
+		components = zip(slots, args) + kwargs.items()
+		for (key, val) in components:
 			setattr(self, key, val)
-	
+
+		if noemit == False:
+			emit(self)
+		
+		return ret
+		
 	isa = isinstance
 	
 	def slots(self):
@@ -42,15 +61,28 @@ class IRNode(object):
 		return self.__class__.__name__
 
 	def __repr__(self):
-		attrs = ['%s = %s' % attr for attr in self.contents()]
-		attrsRep = ', '.join(attrs)
 		nodename = self.name()
-		if attrsRep == '': return nodename
-		return '<%s of %s>' % (nodename, attrsRep)
+
+		contents = self.contents()
+		if contents == []:
+			return nodename
+
+		if contents[0][0] == 'target':
+			target = repr(contents[0][1]) + ' = '
+			contents = contents[1:]
+		else:
+			target = ''
+
+		attrs = ', '.join(['%s = %s' % attr for attr in contents])
+		return '%s<%s of %s>' % (target, nodename, attrs)
 
 import utils
 
-class _IRVar(IRNode):
+class IRAtom(object):
+	def __init__(self, value=None):
+		self.value = value
+
+class IRVar(IRAtom):
 	value = None
 	# use if there's some kind of constant value, like a class, function, or potentially literal
 	

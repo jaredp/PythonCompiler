@@ -21,3 +21,4 @@ If we're lucky, we can use C++'s.  Because of this, I'm making the assumption th
 Some analysies will simply not run on any program that uses globals or locals anywhere.  The analysis to determine locals/globals usage is just too complicated to be complete, even if it is extremely conservative, and it's super edgecase-ish.
 
 Ok so one good thing is that globals/locals are in __builtins__, which aren't actually in globals() by default.  Thus, we can *probably* just track if globals/locals are gotten but not immidiately called.  Even doing so, there are some caveats, mostly from doing something to get all of __builtins__, which can lead to globals/locals escaping to the outside world.
+
