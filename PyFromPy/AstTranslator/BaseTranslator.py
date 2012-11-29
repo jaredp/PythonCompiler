@@ -4,24 +4,24 @@ from IR import *
 class UserProgramError(Exception):
 	pass
 
+'''
+program is global becasue a run of the compiler should
+correspond to translating a single entire program
+'''
 program = Program()
 
 class BaseTranslator(object):
-	def __init__(s, astmodule):
+	def __init__(s, codeblock, astcode):
 		s.linenum = s.colnum = 0
-
-		s.module = IRModule('__main__')
-		program.modules.add(s.module)
-		program.codes.add(s.module.initcode)
 
 		s.namespace = {}			# pyname -> IRVar
 		s.assignedVars = set()		# {pyname}
 		s.explicitGlobals = set()	# {pyname}
 
-		s.buildBlock(s.module.initcode.body, astmodule.body)
+		s.buildBlock(codeblock, astcode)
 
 	def currentModule(s):
-		return s.currentModule
+		return '__main__' # FIXME!!
 
 	def error(s, errmsg):
 		raise UserProgramError(
@@ -92,13 +92,36 @@ class BaseTranslator(object):
 		# NOTE: Do not return this; translateExpr emits it
 		s.translateExpr(value)
 		
-		
-translatorMixins = [BaseTranslator]		
+				
+translatorMixins = [BaseTranslator]
 def translatorMixin(mixin):
 	translatorMixins.append(mixin)
 	return mixin
+
+class TranslatorSubclass(object):
+	__slots__ = ['mixin', 'subclass']	
+	def make(self, *args, **kwargs):
+		return self.subclass(*args, **kwargs)
 	
-def getTranslator():
-	return type('Translator', tuple(translatorMixins),  {})
+translatorSubclasses = set()
+def translatorSubclass(mixin):
+	sub = TranslatorSubclass()
+	sub.mixin = mixin
+	sub.subclass = None
+	translatorSubclasses.add(sub)
+	return sub.make
+
+def buildTranslators():
+	global Translator
+	Translator = type('Translator', tuple(translatorMixins),  {})
+	for s in translatorSubclasses:
+		s.subclass = type(
+			s.mixin.__name__ + 'Subclass', 
+			(s.mixin, Translator),
+			{}
+		)
+	return Translator
+	
+
 	
 		

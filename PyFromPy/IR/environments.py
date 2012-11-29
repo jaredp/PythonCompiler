@@ -78,7 +78,8 @@ class IRCode(IRFunction):
 		# some reasonable defaults
 		self.defaults = {}
 		self.isgenerator = False
-
+		self.varargs = self.kwargs = None
+		
 
 class IRClass(object): __slots__ = [
 	'name',			#C name
@@ -101,16 +102,19 @@ class IRModule(object):
 
 		self.namespace = Namespace(expandable=True)
 		self.initcode = IRCode('load'+name)
+		self.initcode.args = []
+		
 
 		# this both doesn't make sense and doesn't matter
 		self.initcode.module = self 
 
 
 class Program(object):
-	codes = set()		# {IRCode}
-	classes = set()		# {IRClass}
-	modules = set()		# {pyname: IRModule}
-	initcode = None		# main module's initcode`
+	def __init__(self):
+		self.codes = set()		# {IRCode}
+		self.classes = set()	# {IRClass}
+		self.modules = {}		# {filename: IRModule}
+		self.initcode = None	# main module's initcode
 
 
 

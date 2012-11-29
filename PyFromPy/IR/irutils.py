@@ -45,8 +45,22 @@ def pprinter(t):
 @pprinter(IRModule)
 def _pprintMod(mod):
 	print mod.namespace
-	print 'main:'
-	pprintCodeBlock(mod.initcode.body)
+	print 'main:', mod.initcode.cname
+
+@pprinter(Program)
+def _pprintProgram(p):
+	for c in p.codes:
+		pprint(c)
+
+	for m in p.modules.values():
+		pprint(m)
+
+@pprinter(IRCode)
+def _pprintIRCode(code):
+	fsig = 'def %s(%s):' % (code.cname, ', '.join(code.args))
+	_print_indented(fsig)
+	pprintCodeBlock(code.body)
+	print
 
 @pprinter(If)
 def _pprintIf(op):
