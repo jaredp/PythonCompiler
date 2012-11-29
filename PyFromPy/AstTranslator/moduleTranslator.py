@@ -4,11 +4,13 @@ from BaseTranslator import *
 import ast
 from IR import *
 
+translatedModules = {}
+
 @translatorSubclass
 class ModuleTranslator:
 	def __init__(self, modulename, fname):
 		self.module = IRModule(modulename)
-		program.modules[fname] = self.module
+		translatedModules[fname] = self.module
 		program.codes.add(self.module.initcode)
 		
 		astmodule = parseFile(fname)
@@ -24,9 +26,9 @@ def parseFile(fname):
 	return ast.parse(pcode, fname)
 
 def getModuleFile(fname):
-	if fname not in program.modules:
+	if fname not in translatedModules:
 		ModuleTranslator('__main__', fname)
-	return program.modules[fname]
+	return translatedModules[fname]
 
 
 @translatorMixin

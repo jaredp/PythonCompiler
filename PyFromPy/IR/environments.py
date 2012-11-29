@@ -113,7 +113,7 @@ class Program(object):
 	def __init__(self):
 		self.codes = set()		# {IRCode}
 		self.classes = set()	# {IRClass}
-		self.modules = {}		# {filename: IRModule}
+		self.modules = set()	# {IRModule}
 		self.initcode = None	# main module's initcode
 
 

@@ -52,7 +52,7 @@ def _pprintProgram(p):
 	for c in p.codes:
 		pprint(c)
 
-	for m in p.modules.values():
+	for m in p.modules:
 		pprint(m)
 
 @pprinter(IRCode)
