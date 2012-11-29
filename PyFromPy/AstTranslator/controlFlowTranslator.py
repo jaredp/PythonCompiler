@@ -119,6 +119,12 @@ class ControlFlow:
 
 		return Raise(t(type))
 
+	'''
+	Untested.  Currently, it looks like there should be a manual handling
+	of the exception stack, where 
+	RaiseEx() pushes, Handle() pulls, GetException() gets, and Raise() throws
+	'''
+	
 	def _TryExcept(t, body, handlers, orelse):
 		'''
 		was going to nest handlers, but that doesn't seem like a good idea
@@ -128,6 +134,15 @@ class ControlFlow:
 		raise NotImplementedError
 
 	def _TryFinally(t, body, finalbody):
-		raise NotImplementedError
+		ex = IRVar()
+		Assign(target=ex, rhs=IRNoneLiteral())
+		_try = Try(
+			t.translateBlock(body), 
+		None, [
+			Assign(target=ex, rhs=GetException(noemit=True))
+		])
+		t.translateStmts(finalbody)
+		If(ex, [Raise(ex, noemit=True)], [])
+
 	
 

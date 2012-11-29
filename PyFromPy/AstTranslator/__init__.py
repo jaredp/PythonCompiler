@@ -1,4 +1,14 @@
-from moduleTranslator import translateFile
+
 from BaseTranslator import UserProgramError
+import controlFlowTranslator
+import definitionTranslator
+import functionTranslator
+import generatorTranslator
+import literalTranslator
+import operationTranslator
+import unimplementedTranslator
+import varTranslator
+
+from moduleTranslator import translateFile
 
 

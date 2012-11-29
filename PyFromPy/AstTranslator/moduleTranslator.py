@@ -50,7 +50,7 @@ class ImportTranslator(object):
 	def _ImportFrom(s, module, names, level):
 		# no packages -> ignore level
 		# TODO: from _ import *
-		m = s.getNewTemporary()
+		m = IRVar()
 		s.emit(GetModule(m, s.translateModule(module)))
 
 		if len(names) == 1 and names[0].name == '*':
@@ -68,14 +68,6 @@ class ImportTranslator(object):
 			s.emit(Attr(member, m, alias.name))
 			s.emit(Assign(asname, member))
 
-import controlFlowTranslator
-import definitionTranslator
-import functionTranslator
-import generatorTranslator
-import literalTranslator
-import operationTranslator
-import unimplementedTranslator
-import varTranslator
 
 Translator = getTranslator()
 
