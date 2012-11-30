@@ -11,6 +11,8 @@ class ModuleTranslator:
 	def __init__(self, modulename, fname):
 		self.module = IRModule(modulename)
 		translatedModules[fname] = self.module
+		
+		program.modules.add(self.module)
 		program.codes.add(self.module.initcode)
 		
 		astmodule = parseFile(fname)
