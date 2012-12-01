@@ -1,11 +1,25 @@
 
-from BaseTranslator import translatorMixin, getTranslator
+from BaseTranslator import *
 
 import ast
 from IR import *
 
-def translate(astmodule):
-	return Translator(astmodule).module
+translatedModules = {}
+
+@translatorSubclass
+class ModuleTranslator:
+	def __init__(self, modulename, fname):
+		self.module = IRModule(modulename)
+		translatedModules[fname] = self.module
+		
+		program.modules.add(self.module)
+		program.codes.add(self.module.initcode)
+		
+		astmodule = parseFile(fname)
+		BaseTranslator.__init__(self,
+			self.module.initcode.body, 
+			astmodule.body
+		)
 
 def parseFile(fname):
 	f = open(fname)
@@ -13,45 +27,39 @@ def parseFile(fname):
 	f.close()
 	return ast.parse(pcode, fname)
 
-def translateFile(fname):
-	return translate(parseFile(fname))
+def getModuleFile(fname):
+	if fname not in translatedModules:
+		ModuleTranslator('__main__', fname)
+	return translatedModules[fname]
 
-# global becasue a run of the compiler should
-# correspond to translating a single entire program
-modules = {}
 
 @translatorMixin
 class ImportTranslator(object):
-	def translateModule(self, mname):
-		global modules
-		if mname not in modules:
-			modfile = lookupModule(mname)
-			modules[mname] = translateFile(modfile)
-		return modules[mname]
+	def getModule(self, mname):
+		fname = lookupModule(mname)
+		return getModuleFile(fname)
 		
 	# General FIXME/TODO/UNHANDLED: packages are compeletely unsupported
-	def lookupModule(s, mname):
-		#FIXME: this is actually fairly complex
-		return mname.replace('.', '/') + '.py'
-	
-	def translateModule(s, mname):
+	def lookupModule(mname):
 		try:
-			return translateFile(s.lookupModule(mname))
+			return mname.replace('.', '/') + '.py'
 		except:
-			s.error("no module named %s" % mname)
+			s.error("no module named %s" % mname)		
 			
+	####################################################
+	# Importers
+	####################################################
+	
 	def _Import(s, names):
 		for alias in names:
 			asname = alias.asname or alias.name
-			target = s.getTargetNamed(asname)
-			module = s.translateModule(alias.name)
-			s.emit(GetModule(target, module))
+			module = s.getModule(alias.name)
+			GetModule(module, target=s.getTargetNamed(asname))
 
 	def _ImportFrom(s, module, names, level):
 		# no packages -> ignore level
 		# TODO: from _ import *
-		m = s.getNewTemporary()
-		s.emit(GetModule(m, s.translateModule(module)))
+		m = GetModule(s.getModule(module))
 
 		if len(names) == 1 and names[0].name == '*':
 			# from foo import *
@@ -63,19 +71,7 @@ class ImportTranslator(object):
 			raise NotImplementedError
 
 		for alias in names:
-			asname = s.getTargetNamed(alias.asname or alias.name)
-			member = s.getNewTemporary()
-			s.emit(Attr(member, m, alias.name))
-			s.emit(Assign(asname, member))
+			as_name = s.getTargetNamed(alias.asname or alias.name)
+			Attr(m, alias.name, target=as_name)
 
-import controlFlowTranslator
-import definitionTranslator
-import functionTranslator
-import generatorTranslator
-import literalTranslator
-import operationTranslator
-import unimplementedTranslator
-import varTranslator
-
-Translator = getTranslator()
 

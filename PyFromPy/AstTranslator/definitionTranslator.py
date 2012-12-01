@@ -1,5 +1,5 @@
 from IR import *
-from BaseTranslator import translatorMixin
+from BaseTranslator import *
 
 @translatorMixin
 class Definitions:

@@ -4,8 +4,8 @@ import AstTranslator
 import IR
 
 def _main():
-	irmod = AstTranslator.translateFile(sys.argv[1])
-	irmod.pprint()
+	program = AstTranslator.translateFile(sys.argv[1])
+	program.pprint()
 
 import sys
 
