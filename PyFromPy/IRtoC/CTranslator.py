@@ -13,6 +13,11 @@ class CTRanslator(object):
 		self.f.write("")
 		self.f.flush()
 
+	def generateC(mod):
+		file = sys.stdout
+		for irop in mod.body:
+			cexpr = translateExpr(irop)
+
 	def fill(self, text = ""):
 		"Indent a piece of text, according to the current indentation level"
 		self.f.write("\n"+"	"*self._indent + text)
@@ -46,12 +51,6 @@ class CTRanslator(object):
 	def translateExpr(s, irexpr):
 		meth = getattr(s, '_'+irexpr.__class__.__name__)
 		return meth(irexpr)
-
-	def generateC(mod):
-		file = sys.stdout
-		for irop in mod.body:
-			cexpr = translateExpr(irop)
-			#generate returned code here
 
 	############### C Translating methods ##################
 	# There should be one method per concrete grammar type #
