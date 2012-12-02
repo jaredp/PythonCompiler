@@ -2,10 +2,16 @@
 
 import AstTranslator
 import IR
+from IRtoC.CTranslator import CTranslator
+
+command_line_flags = {}
 
 def _main():
 	program = AstTranslator.translateFile(sys.argv[1])
-	program.pprint()
+	if '-i' in command_line_flags:
+		program.pprint()
+	else:
+		CTranslator(program)
 
 
 # http://code.activestate.com/recipes/52215/
@@ -49,7 +55,6 @@ def print_exc_plus():
 				errlog("\t%20s = <ERROR WHILE PRINTING VALUE>" % key)
 
 
-command_line_flags = {}
 def parseFlags(flags):
 	command_line_flags['files'] = []
 	currentflag = command_line_flags['files']
