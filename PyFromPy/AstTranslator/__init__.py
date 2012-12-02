@@ -13,6 +13,6 @@ import moduleTranslator
 buildTranslators()
 
 def translateFile(fname):
-	main_module = moduleTranslator.getModuleFile(fname)
+	main_module = moduleTranslator.getModuleFile(fname, '__main__')
 	program.initcode = main_module.initcode
 	return program

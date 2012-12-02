@@ -5,13 +5,11 @@ from utils import uniqueID
 class Namespace(object):
 	__slots__ = [
 		'members',			# {pyname -> IRVar}
-		'temporaries',		# set(IRVar)
 		'isExpandable',		# bool
 	]
 	
 	def __init__(self, expandable=False):
 		self.members = {}
-		self.temporaries = set()
 		self.isExpandable = expandable
 
 	def get(ns, pyname):
@@ -19,11 +17,8 @@ class Namespace(object):
 			ns.members[pyname] = IRVar(pyname)
 		return ns.members[pyname]
 
-	def newTemporary(self):
-		#FIXME: be careful how you use this; could be messy on IRVar.merge
-		t = IRVar()
-		self.temporaries.add(t)
-		return t
+	def add(self, members):
+		self.members.update(members)
 
 	def __repr__(self):
 		return repr(self.members)
@@ -33,39 +28,26 @@ class IRFunction(object):
 	'''Abstract base class of IRCode and IRBuiltinFunction (stdlib.py)'''
 	__slots__ = [
 		'cname',		# C name		
-		'args',			# pynames in namespace.members
+		'args',			# pynames in namespace.members|None
 		'varargs',
 		'kwargs',
 		
 		#types
 	]
 
-	def newTemporary(self):
-		#FIXME: be careful how you use this; could be messy on IRVar.merge
-		t = IRVar()
-		self.temporaries.add(t)
-		return t
-
-	def getLocal(self, pyname):
-		t = self.namespace.get(pyname)
-		self.temporaries.add(t)
-		return t
-
 class IRCode(IRFunction):
 	__slots__ = [
 		'pyname',		# name defined in Python
 		'module',		# string name of module fn was defined in
+
 		'body',			# codeblock, or None for builtins
-		'defaults',		# {pyname: IRVar} ?
+		'argvars' 		# [IRVar]
+		'defaults',		# [pyname] ?
 
-		'captures',		# set(IRVar) ?
 		'globals',		# set(IRVar) ?
-		
-		#flags
-		'isgenerator',
-
 		'temporaries',	# set(IRVar)
-		'namespace',	# locals, globals, captures, defaults
+		'namespace',	# {pyname -> IRVar}
+						# locals, args, globals, captures, defaults
 	]
 
 	def __init__(self, pyname):
@@ -76,9 +58,11 @@ class IRCode(IRFunction):
 		self.namespace = Namespace(expandable=False)
 		
 		# some reasonable defaults
-		self.defaults = {}
-		self.isgenerator = False
-		self.varargs = self.kwargs = None
+		self.defaults = []
+		self.args = []
+		self.argvars = []
+		self.varargs = None
+		self.kwargs = None
 		
 
 class IRClass(object): __slots__ = [
@@ -92,7 +76,7 @@ class IRModule(object):
 		'name',
 		'docstring',
 
-		'namespace',
+		'namespace',	# {pyname -> IRVar}
 		'initcode'		# code block
 	]
 

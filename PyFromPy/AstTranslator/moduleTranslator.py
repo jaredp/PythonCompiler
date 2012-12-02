@@ -9,17 +9,29 @@ translatedModules = {}
 @translatorSubclass
 class ModuleTranslator:
 	def __init__(self, modulename, fname):
+		BaseTranslator.__init__(self)
+
 		self.module = IRModule(modulename)
 		translatedModules[fname] = self.module
 		
 		program.modules.add(self.module)
 		program.codes.add(self.module.initcode)
 		
-		astmodule = parseFile(fname)
-		BaseTranslator.__init__(self,
+		astcode = parseFile(fname).body
+		astcode = self.pullDocstring(astcode)
+
+		self.buildBlock(
 			self.module.initcode.body, 
-			astmodule.body
+			astcode
 		)
+		
+		self.module.docstring = self.docstring
+		self.module.namespace = self.namespace
+
+
+	def declareGlobal(self, gbl):
+		self.error('global declaration illegal in global scope')
+
 
 def parseFile(fname):
 	f = open(fname)
@@ -27,9 +39,9 @@ def parseFile(fname):
 	f.close()
 	return ast.parse(pcode, fname)
 
-def getModuleFile(fname):
+def getModuleFile(fname, mname):
 	if fname not in translatedModules:
-		ModuleTranslator('__main__', fname)
+		ModuleTranslator(mname, fname)
 	return translatedModules[fname]
 
 
@@ -37,7 +49,7 @@ def getModuleFile(fname):
 class ImportTranslator(object):
 	def getModule(self, mname):
 		fname = lookupModule(mname)
-		return getModuleFile(fname)
+		return getModuleFile(fname, mname)
 		
 	# General FIXME/TODO/UNHANDLED: packages are compeletely unsupported
 	def lookupModule(mname):

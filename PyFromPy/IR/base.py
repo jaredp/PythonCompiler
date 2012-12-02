@@ -18,7 +18,9 @@ activeBlockStack = []
 def enterBlock(block):	activeBlockStack.append(block)
 def leaveBlock():		activeBlockStack.pop()
 def currentBlock():		return activeBlockStack[-1]
-def emit(op):			currentBlock().append(op)
+def emit(op):			
+	assert isinstance(op, IRNode), "tried to emit %s" % s
+	currentBlock().append(op)
 
 @contextmanager
 def IRBlock(block):

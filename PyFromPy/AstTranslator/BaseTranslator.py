@@ -1,5 +1,7 @@
 from utils import *
 from IR import *
+import ast
+from utils import matches, ___
 
 class UserProgramError(Exception):
 	pass
@@ -11,28 +13,24 @@ correspond to translating a single entire program
 program = Program()
 
 class BaseTranslator(object):
-	def __init__(s, codeblock, astcode):
+	def __init__(s):
 		s.linenum = s.colnum = 0
 
 		s.namespace = {}			# pyname -> IRVar
 		s.assignedVars = set()		# {pyname}
 		s.explicitGlobals = set()	# {pyname}
 
-		s.buildBlock(codeblock, astcode)
+	def pullDocstring(s, astcode):
+		if matches(astcode, [ast.Expr(ast.Str), ___]):
+			s.docstring = astcode[0].value.s
+			astcode = astcode[1:]
+		else:
+			s.docstring = None
 
-	def currentModule(s):
-		return '__main__' # FIXME!!
 
-	def error(s, errmsg):
-		raise UserProgramError(
-			'error: %s in %s at %s:%s' %
-			(errmsg, s.currentModule(), s.linenum, s.colnum)
-		)
-
-	def runtimeError(s, errmsg):
-		# this actually isn't the proper sig, but w/e for now
-		# also, FIXME, raise or something
-		s.error(errmsg)
+	########################################
+	# namespace infastructure
+	########################################
 
 	def getVarNamed(s, pyname):
 		if pyname not in s.namespace:
@@ -45,25 +43,48 @@ class BaseTranslator(object):
 	
 	def declareGlobal(s, gbl):
 		s.explicitGlobals.add(gbl)
+
+	########################################
+	# namespace interpretation infastructure
+	########################################
+
+	def getLocals(self):
+		# any variable assigned to not declared global
+		return {
+			name for name in self.assignedVars
+			if name not in self.explicitGlobals
+		}
 		
-	#error handling
+	def getGlobals(self):
+		return {
+			name for name in self.namespace.keys()
+			if name not in self.assignedVars 
+			or name in self.explicitGlobals
+		}
+
+	########################################
+	# error handling infastructure
+	########################################
+
+	def error(s, errmsg):
+		raise UserProgramError(
+			'error: %s in %s at %s:%s' %
+			(errmsg, s.currentModule(), s.linenum, s.colnum)
+		)
+
+	def runtimeError(s, errmsg):
+		# this actually isn't the proper sig, but w/e for now
+		# also, FIXME, raise or something
+		s.error(errmsg)
+		
 	def trackPosition(s, astobj):
 		s.linenum = astobj.__dict__.pop('lineno', None)
 		s.colnum = astobj.__dict__.pop('col_offset', None)
 
-	def emit(s, op):
-		assert isinstance(op, IROperation) or isinstance(op, IRBlock),	\
-			"tried to emit %s" % s
-		emit(op)
-	'''
-	def op(s, opclass):
-		temp = s.getNewTemporary()
-		def maker(*components, **kwcomponents):
-			op = opclass(*([temp] + list(components)), **kwcomponents)
-			return op
-		return maker
-	'''		
-	#code generation infastructure
+	########################################
+	# code generation infastructure
+	########################################
+
 	def translateStmts(s, stmts):
 		for line in stmts:
 			s.translateLine(line)

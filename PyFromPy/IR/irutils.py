@@ -7,6 +7,7 @@ IRIntLiteral.__repr__ = IRFloatLiteral.__repr__ = IRStringLiteral.__repr__ = \
 # print utils
 
 _indentation_lvl = 0
+_horizontal_rule = '-----------------'
 
 def _indent():
 	global _indentation_lvl
@@ -44,11 +45,17 @@ def pprinter(t):
 
 @pprinter(IRModule)
 def _pprintMod(mod):
+	print mod.name
+	print _horizontal_rule
+	if mod.docstring: print 'doc:', mod.docstring
 	print mod.namespace
 	print 'main:', mod.initcode.cname
 
 @pprinter(Program)
 def _pprintProgram(p):
+	print
+	print
+
 	for c in p.codes:
 		pprint(c)
 
@@ -57,9 +64,10 @@ def _pprintProgram(p):
 
 @pprinter(IRCode)
 def _pprintIRCode(code):
-	fsig = 'def %s(%s):' % (code.cname, ', '.join(code.args))
-	_print_indented(fsig)
+	print 'function %s(%s)' % (code.cname, ', '.join(code.args))
+	print _horizontal_rule
 	pprintCodeBlock(code.body)
+	print
 	print
 
 @pprinter(If)

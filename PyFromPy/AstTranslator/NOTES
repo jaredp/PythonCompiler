@@ -11,8 +11,7 @@ We're just going to do subscript and slices[start:end]
 
 Yo, deal with builtins
 
-I'm considering using closures for captures
-this may be a code generation issue
+I'm considering using captures for closures at the IR level, and just not handling that for now.
 
 We're almost certainly not going to support cyclicic gc at this point
 
@@ -33,3 +32,14 @@ The orelse clauses of for and while statements are currently unimplemented.  A d
 
 BIG ONE:
 a return in a try happens *AFTER* the finally clause.  I don't think C++ does this, and this is actually not that trivial to translate to the target language.  The IR assumes C semantics.  I think I'll rely on an IR transform to make this behave according to Python semantics.
+
+Function's captures aren't identified until after IR generation.  This is done because captures work on >1st degree scopes, and you don't know at the end of the scope all of the locals of the enclosing scopes.  Instead, we're going to identify captures at the end of top-level scopes generation, and we'll do this after IR generation as a correctness pass.
+
+TODO: identify temporaries pass
+TODO: handle arguments in namespace considerations 
+
+I removed the isgenerator flag from IRCode -- Generators should probably be distinct from functions some way or another
+
+I removed captures from IRCode -- I think they should be handled at a transform level, so the IR doesn't need to 'know' about them
+
+Because of def `fn(a, (b, c)):` arguments do not always have to be named.  Lambdas also cause this.  Therefore, they should be IRVars, with Assignments first thing.
