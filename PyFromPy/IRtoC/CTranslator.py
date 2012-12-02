@@ -1,6 +1,7 @@
 from IR import *
 import sys
 import cStringIO
+import ir
 import os
 
 class CTRanslator(object):
@@ -106,10 +107,16 @@ class CTRanslator(object):
 		pass
 	
 	def _DeleteVar(self, irexpr):
-		pass
+		self.write("delete" + " ")
+		self.dispatch(irexpr.var)
+		self.write(";")
 
 	def _DeleteAttr(self, irexpr):
-		pass
+		self.write("delete" + " ")
+		self.dispatch(irexpr.obj)
+		self.write(".")
+		self.dispatch(irexpr.attr)
+		self.write(";")
 
 	def _DeleteSubscript(self, irexpr):
 		pass
@@ -138,10 +145,54 @@ class CTRanslator(object):
 		self.write(";")
 
 	def _FCall(self, irexpr):
-		pass
+		self.dispatch(irexpr.fn)
+		self.write("(")
+		comma = False
+		for e in irexpr.args:
+			if comma: self.write(", ")
+			else: comma = True
+			self.dispatch(e)
+		for e in irexpr.keywords:
+			if comma: self.write(", ")
+			else: comma = True
+			self.dispatch(e)
+		if irexpr.starargs:
+			if comma: self.write(", ")
+			else: comma = True
+			self.write("*")
+			self.dispatch(irexpr.starargs)
+		if irexpr.kwargs:
+			if comma: self.write(", ")
+			else: comma = True
+			self.write("**")
+			self.dispatch(irexpr.kwargs)
+		self.write(")")
+		self.write(";")
 
 	def _MethodCall(self, irexpr):
-		pass
+		self.dispatch(irexpr.fn)
+		self.write("(")
+		comma = False
+		for e in irexpr.args:
+			if comma: self.write(", ")
+			else: comma = True
+			self.dispatch(e)
+		for e in irexpr.keywords:
+			if comma: self.write(", ")
+			else: comma = True
+			self.dispatch(e)
+		if irexpr.starargs:
+			if comma: self.write(", ")
+			else: comma = True
+			self.write("*")
+			self.dispatch(irexpr.starargs)
+		if irexpr.kwargs:
+			if comma: self.write(", ")
+			else: comma = True
+			self.write("**")
+			self.dispatch(irexpr.kwargs)
+		self.write(")")
+		self.write(";")
 
 	def _ConstCall(self, irexpr):
 		pass
@@ -151,12 +202,23 @@ class CTRanslator(object):
 		self.dispatch(irexpr.target)
 		self.write(" = ")
 		self.dispatch(irexpr.rhs)
+		self.write(";")
 
 	def _Attr(self, irexpr):
-		pass
+		self.dispatch(irexpr.obj)
+		# Special case: 3.__abs__() is a syntax error, so if t.value
+		# is an integer literal then we need to either parenthesize
+		# it or add an extra space to get 3 .__abs__().
+		#if isinstance(irexpr.obj, ir.Num) and isinstance(t.obj.n, int):
+		#	self.write(" ")
+		self.write(".")
+		self.write(irexpr.attr)
 
 	def _Subscript(self, irexpr):
-		pass
+		self.dispatch(irexpr.obj)
+		self.write("[")
+		self.dispatch(irexpr.subscript)
+		self.write("]")
 
 	def _Slice(self, irexpr):
 		if irexpr.lower:
@@ -187,4 +249,5 @@ class CTRanslator(object):
 		pass
 
 	def _MakeClass(self, irexpr):
+		#TOFIX: Classes in C? Not sure I comprehend this...
 		pass
