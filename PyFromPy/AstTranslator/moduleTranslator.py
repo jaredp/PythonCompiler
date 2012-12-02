@@ -8,8 +8,8 @@ translatedModules = {}
 
 @translatorSubclass
 class ModuleTranslator:
-	def __init__(self, modulename, fname):
-		BaseTranslator.__init__(self)
+	def __init__(self, outer, modulename, fname):
+		BaseTranslator.__init__(self, outer)
 
 		self.module = IRModule(modulename)
 		translatedModules[fname] = self.module
@@ -18,8 +18,8 @@ class ModuleTranslator:
 		program.codes.add(self.module.initcode)
 		
 		astcode = parseFile(fname).body
-		astcode = self.pullDocstring(astcode)
 
+		self.pullDocstring(astcode)
 		self.buildBlock(
 			self.module.initcode.body, 
 			astcode
@@ -28,10 +28,11 @@ class ModuleTranslator:
 		self.module.docstring = self.docstring
 		self.module.namespace = self.namespace
 
-
 	def declareGlobal(self, gbl):
 		self.error('global declaration illegal in global scope')
 
+	def currentModule(self):
+		return self.module
 
 def parseFile(fname):
 	f = open(fname)
@@ -39,9 +40,9 @@ def parseFile(fname):
 	f.close()
 	return ast.parse(pcode, fname)
 
-def getModuleFile(fname, mname):
+def getModuleFile(fname, mname, outer = None):
 	if fname not in translatedModules:
-		ModuleTranslator(mname, fname)
+		ModuleTranslator(outer, mname, fname)
 	return translatedModules[fname]
 
 

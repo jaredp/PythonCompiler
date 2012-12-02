@@ -7,7 +7,6 @@ def _main():
 	program = AstTranslator.translateFile(sys.argv[1])
 	program.pprint()
 
-import sys
 
 # http://code.activestate.com/recipes/52215/
 import sys, traceback
@@ -49,13 +48,29 @@ def print_exc_plus():
 			except:
 				errlog("\t%20s = <ERROR WHILE PRINTING VALUE>" % key)
 
+
+command_line_flags = {}
+def parseFlags(flags):
+	command_line_flags['files'] = []
+	currentflag = command_line_flags['files']
+
+	for flag in flags:
+		if flag.startswith('-'):
+			command_line_flags[flag] = []
+			currentflag = command_line_flags[flag]
+		else:
+			currentflag.append(flag)
+
 def main():
 	try:
-		_main()
-	except AstTranslator.UserProgramError as e:
-		print e
+		try:
+			parseFlags(sys.argv)
+			_main()
+		except AstTranslator.UserProgramError as e:
+			if '-ce' in command_line_flags: raise
+			else: print e
 	except:
-		if len(sys.argv) == 3: print_exc_plus()
+		if '-t' in command_line_flags: print_exc_plus()
 		else: raise
 
 if __name__ == '__main__':

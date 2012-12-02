@@ -6,45 +6,53 @@ from utils import matches, __, ___
 
 @translatorSubclass
 class FunctionTranslator:
-	def __init__(self, pyname, argsast, ast):
-		BaseTranslator.__init__(self)
+	def __init__(self, outer, pyname, argsast, bodyast):
+		BaseTranslator.__init__(self, outer)
 
 		self.function = IRCode(pyname)
 		program.codes.add(self.function)
 
-		#self.function.module = ?
+		self.function.module = self.currentModule()
+		self.pullDocstring(bodyast)
 
 		#args can be Names, Assign([Name], expr), or Tuple
-		self.function.args = []
-		for argast in argsast:
-			if matches(argast, ast.Name):
-				argname = argsast.id
-				self.function.args.append(argname)
+		with IRBlock(self.function.body):
+			self.function.args = []
+			for argast in argsast.args:
+				if matches(argast, ast.Name):
+					argname = argast.id
+					self.function.args.append(argname)
 
-				var = self.getVarNamed(argname)
-				self.function.argvars.append(var)
+					var = self.getTargetNamed(argname)
+					self.function.argvars.append(var)
 
-			elif matches(argsast, ast.Assign([ast.Name], __)):
-				# we assume the expression was evaluated externally
-				argname = argsast.targets[0].id
-				self.function.defaults.append(argname)
-				self.function.args.append(argname)
+				elif matches(argast, ast.Assign([ast.Name], __)):
+					# we assume the expression was evaluated externally
+					argname = argast.targets[0].id
+					self.function.defaults.append(argname)
+					self.function.args.append(argname)
 
-				var = self.getVarNamed(argname)
-				self.function.argvars.append(var)
+					var = self.getTargetNamed(argname)
+					self.function.argvars.append(var)
 
-			elif matches(argsast, ast.Tuple):
-				self.function.args.append(None)
-				
-				argvar = IRVar()
-				self.function.argsvars.append(argvar)
-				
-				self.makeAssignment(argsast, argvar)
+				elif matches(argast, ast.Tuple):
+					self.function.args.append(None)
+					
+					argvar = IRVar()
+					self.function.argvars.append(argvar)
 
-			else:
-				self.error("unexpected argument %s" % argsast)
+					self.makeAssignment(argast, argvar)
 
-		self.buildBlock(self.function.body, ast)
+				else:
+					self.error("unexpected argument %s" % argast)
+
+
+		self.buildBlock(
+			self.function.body,
+			bodyast
+		)
+		
+		self.function.docstring = self.docstring
 		self.function.namespace = self.namespace
 		self.function.globals = self.getGlobals()
 		
@@ -52,9 +60,15 @@ class FunctionTranslator:
 @translatorMixin
 class Definitions:
 	def _FunctionDef(t, name, args, body, decorator_list):
-		translator = FunctionTranslator(name, args, body)
-		fn = MakeFunction(translator.function, [], [])
-		decorated = t.decorate(fn, decorator_list)
+		translator = FunctionTranslator(t, name, args, body)
+		fn = translator.function
+		for gbl in fn.globals:
+			fn.namespace[gbl].isActually(t.getVarNamed(gbl))
+
+		# FIXME: captures, defaults
+
+		fnvar = MakeFunction(fn, [], [])
+		decorated = t.decorate(fnvar, decorator_list)
 		Assign(target=t.getTargetNamed(name), rhs=decorated)
 
 	def decorate(t, obj, decorator_list):

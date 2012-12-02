@@ -13,20 +13,26 @@ correspond to translating a single entire program
 program = Program()
 
 class BaseTranslator(object):
-	def __init__(s):
-		s.linenum = s.colnum = 0
+	def __init__(self, outertranslator):
+		self.linenum = self.colnum = 0
+		self.outertranslator = outertranslator
 
-		s.namespace = {}			# pyname -> IRVar
-		s.assignedVars = set()		# {pyname}
-		s.explicitGlobals = set()	# {pyname}
+		self.namespace = {}				# pyname -> IRVar
+		self.assignedVars = set()		# {pyname}
+		self.explicitGlobals = set()	# {pyname}
 
 	def pullDocstring(s, astcode):
 		if matches(astcode, [ast.Expr(ast.Str), ___]):
-			s.docstring = astcode[0].value.s
-			astcode = astcode[1:]
+			s.docstring = astcode.pop(0).value.s
 		else:
 			s.docstring = None
+		
+	########################################
+	# translator nesting infastructure
+	########################################
 
+	def currentModule(self):
+		return self.outertranslator.currentModule()
 
 	########################################
 	# namespace infastructure
@@ -69,7 +75,7 @@ class BaseTranslator(object):
 	def error(s, errmsg):
 		raise UserProgramError(
 			'error: %s in %s at %s:%s' %
-			(errmsg, s.currentModule(), s.linenum, s.colnum)
+			(errmsg, s.currentModule().name, s.linenum, s.colnum)
 		)
 
 	def runtimeError(s, errmsg):
@@ -112,7 +118,7 @@ class BaseTranslator(object):
 	def _Expr(s, value):
 		# NOTE: Do not return this; translateExpr emits it
 		s.translateExpr(value)
-		
+
 				
 translatorMixins = [BaseTranslator]
 def translatorMixin(mixin):

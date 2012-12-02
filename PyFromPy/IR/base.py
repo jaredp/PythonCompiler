@@ -39,9 +39,15 @@ class IRNode(object):
 		slots = self.slots()
 
 		if 'target' in slots:
-			self.target = kwargs.pop('target', None) or IRVar()
+			# can't use kwargs.pop('target', None) or IRVar b/c target=None
+			if 'target' in kwargs:
+				self.target = kwargs.pop('target')
+				ret = self
+			else:
+				self.target = IRVar()
+				ret = self.target
+
 			slots.remove('target')
-			ret = self.target
 		else:
 			ret = self
 		
@@ -92,11 +98,10 @@ class IRAtom(object):
 		self.value = value
 
 class IRVar(IRAtom):
-	value = None
-	# use if there's some kind of constant value, like a class, function, or potentially literal
-	
-	unifiedVar = None
+	# use value if there's some kind of constant value, like a class, function, or potentially literal
 	# if univiedVar is not none, use this as a proxy for it
+	def getUnifiedVar(self):
+		return self.unifiedVar.getUnifiedVar() if self.unifiedVar else self
 
 	__slots__ = ['num', 'name', 'value', 'unifiedVar'] 
 	# and some type stuff...
@@ -104,17 +109,16 @@ class IRVar(IRAtom):
 	def __init__(self, nameSuggestion=''):
 		self.num = utils.nextUniqueNum
 		self.name = utils.uniqueID(nameSuggestion)
-		self.unifiedVar = self
+		self.unifiedVar = None
+		self.value = None
 	
 	def __eq__(lhs, rhs):
-		return lhs.num == rhs.num
+		return lhs.getUnifiedVar().num == rhs.getUnifiedVar().num
 	
 	def isActually(lhs, rhs):
-		lhs.num = rhs.num
-		lhs.name = rhs.name
-		lhs.unifiedVar = rhs.unifiedVar
+		lhs.unifiedVar = rhs
 		#probably something with values/types but that's beyond here
 	
 	def __repr__(self):
-		return self.name
+		return self.getUnifiedVar().name
 

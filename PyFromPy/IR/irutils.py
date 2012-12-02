@@ -1,8 +1,21 @@
 from IR.ir import *
 from IR.environments import *
 
-IRIntLiteral.__repr__ = IRFloatLiteral.__repr__ = IRStringLiteral.__repr__ = \
-	lambda l: str(l.value)
+def newrepr(ty):
+	def setrepr(fn):
+		ty.__repr__ = fn
+		return fn
+	return setrepr
+
+@newrepr(IRIntLiteral)
+@newrepr(IRFloatLiteral)
+@newrepr(IRStringLiteral)
+def _literalRepr(lit):
+	return str(lit.value)
+
+@newrepr(IRCode)
+def _codeRepr(code):
+	return code.cname
 
 # print utils
 
@@ -64,7 +77,8 @@ def _pprintProgram(p):
 
 @pprinter(IRCode)
 def _pprintIRCode(code):
-	print 'function %s(%s)' % (code.cname, ', '.join(code.args))
+	args = ['%s: %s' % a for a in zip(code.args, code.argvars)]
+	print 'function %s(%s)' % (code.cname, ', '.join(args))
 	print _horizontal_rule
 	pprintCodeBlock(code.body)
 	print

@@ -15,12 +15,15 @@ else:
 	print 'No'
 '''
 
+#global i
+def gt(a, (yes, no)):
+	def isgreater(a, b):
+		return cmp(a, b, i)
+	print yes if isgreater(a, i) else no
 
-def gt():
-	print 'YES' if isgreater(3, 5) else 'No'
-
+yn = ('YES', 'NO')
 for i in range(10):
-	print gt(i)
+	print gt(i, yn)
 
 '''
 i = 0

@@ -4,6 +4,9 @@ from IR.environments import *
 class BuiltinFn(IRFunction):
 	def __init__(self, fname, *args):
 		self.cname = fname
+		self.pyname = '`unnamed function`'
+		self.docstring = None
+		self.module = '__builtin__'
 		self.args = list(args)
 		globals()[fname] = self
 

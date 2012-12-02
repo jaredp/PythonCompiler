@@ -5,6 +5,7 @@ from BaseTranslator import translatorMixin
 @translatorMixin
 class Functions:	
 	def _Call(t, func, args, keywords, starargs, kwargs):
+		#FIXME: if func is an Attr, this is a method
 		return FCall(
 			t(func),
 			[t(arg) for arg in args],

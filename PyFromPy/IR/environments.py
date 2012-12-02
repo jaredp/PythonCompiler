@@ -27,21 +27,23 @@ class Namespace(object):
 class IRFunction(object):
 	'''Abstract base class of IRCode and IRBuiltinFunction (stdlib.py)'''
 	__slots__ = [
+		'pyname',		# name defined in Python
 		'cname',		# C name		
+
 		'args',			# pynames in namespace.members|None
 		'varargs',
 		'kwargs',
-		
+
+		'docstring',
+		'module',		# string name of module fn was defined in
+
 		#types
 	]
 
 class IRCode(IRFunction):
 	__slots__ = [
-		'pyname',		# name defined in Python
-		'module',		# string name of module fn was defined in
-
 		'body',			# codeblock, or None for builtins
-		'argvars' 		# [IRVar]
+		'argvars', 		# [IRVar]
 		'defaults',		# [pyname] ?
 
 		'globals',		# set(IRVar) ?
