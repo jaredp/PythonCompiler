@@ -1,7 +1,6 @@
 from IR import *
 import sys
 import cStringIO
-import ir
 import os
 
 class CTRanslator(object):
@@ -61,6 +60,40 @@ class CTRanslator(object):
 	# currently doesn't.								   #
 	########################################################
 
+	def _If(self, irexpr):
+		#TODO
+		self.fill("if ")
+		self.dispatch(irexpr.condition)
+		self.enter()
+		self.dispatch(irexpr.then)
+		self.leave()
+		# collapse nested ifs into equivalent elifs.
+		#TOFIX: Nested if's not handled properly
+		while (irexpr.orelse and len(irexpr.orelse) == 1 and
+			   isinstance(irexpr.orelse[0], ir.If)):
+			irexpr = irexpr.orelse[0]
+			self.fill("else if ")
+			self.dispatch(irexpr.condition)
+			self.enter()
+			self.dispatch(irexpr.then)
+			self.leave()
+		# final else
+		if t.orelse:
+			self.fill("else")
+			self.enter()
+			self.dispatch(irexpr.orelse)
+			self.leave()
+
+	def _Loop(self, irexpr):
+		#TODO
+		#TOFIX: Do we not have different classes for different loop types?
+		pass
+
+	def _Try(self, irexpr):
+		#TODO
+		#TOFIX: What's our strategy for exception handling?
+		pass
+
 	def _Return(self, irexpr):
 		self.fill("return")
 		if irexpr.value:
@@ -98,12 +131,25 @@ class CTRanslator(object):
 		self.write(";")
 
 	def _AssignAttr(self, irexpr):
-		pass
+		self.fill()
+		self.dispatch(irexpr.obj)
+		self.write(".")
+		self.dispatch(irexpr.attr)
+		self.write(" = ")
+		self.dispatch(irexpr.value)
+		self.write(";")
 
 	def _AssignSubscript(self, irexpr):
-		pass
+		self.fill()
+		self.dispatch(irexpr.obj)
+		self.write(".")
+		self.dispatch(irexpr.subscript)
+		self.write(" = ")
+		self.dispatch(irexpr.value)
+		self.write(";")
 
 	def _AssignSlice(self, irexpr):
+		#TODO
 		pass
 	
 	def _DeleteVar(self, irexpr):
@@ -119,29 +165,42 @@ class CTRanslator(object):
 		self.write(";")
 
 	def _DeleteSubscript(self, irexpr):
+		#TODO
 		pass
 
 	def _DeleteSlice(self, irexpr):
+		#TODO
 		pass
 
-	binop = { "Add":"+", "Sub":"-", "Mult":"*", "Div":"/", "Mod":"%",
-					"LShift":"<<", "RShift":">>", "BitOr":"|", "BitXor":"^", "BitAnd":"&",
-					"FloorDiv":"//", "Pow": "**"}
+	#binop = { "Add":"+", "Sub":"-", "Mult":"*", "Div":"/", "Mod":"%",
+	#				"LShift":"<<", "RShift":">>", "BitOr":"|", "BitXor":"^", "BitAnd":"&",
+	#				"FloorDiv":"//", "Pow": "**"}
 
 	def _BinOp(self, irexpr):
 		self.write("(")
 		self.dispatch(irexpr.lhs)
-		self.write(" " + self.binop[irexpr.op.__class__.__name__] + " ")
+		self.write(" " + self.op[irexpr.op.__class__.__name__] + " ")
 		self.dispatch(irexpr.rhs)
 		self.write(")")
 		self.write(";")
-		#TOFIX: No attribute such as irexpr.op
 
 	unop = {"Invert":"~", "Not": "!", "UAdd":"+", "USub":"-"}
 	def _UnaryOp(self, irexpr):
 		self.write("(")
 		self.write(self.unop[irexpr.op.__class__.__name__])
 		self.write(" ")
+		# If we're applying unary minus to a number, parenthesize the number.
+		# This is necessary: -2147483648 is different from -(2147483648) on
+		# a 32-bit machine (the first is an int, the second a long), and
+		# -7j is different from -(7j).  (The first has real part 0.0, the second
+		# has real part -0.0.)
+		if isinstance(irexpr.op, ir.USub) and isinstance(ir.operand, ir.Num):
+			self.write("(")
+			self.dispatch(irexpr.arg)
+			self.write(")")
+		else:
+			self.dispatch(irexpr.arg)
+		self.write(")")
 		self.write(";")
 
 	def _FCall(self, irexpr):
@@ -219,6 +278,7 @@ class CTRanslator(object):
 		self.write("[")
 		self.dispatch(irexpr.subscript)
 		self.write("]")
+		self.write(";")
 
 	def _Slice(self, irexpr):
 		if irexpr.lower:
@@ -229,25 +289,33 @@ class CTRanslator(object):
 		if irexpr.step:
 			self.write(":")
 			self.dispatch(irexpr.step)
+		self.write(";")
 	
 	def _GetGeneratorSentIn(self, irexpr):
+		#TODO
 		pass
 
 	def _GetException(self, irexpr):
+		#TODO
 		pass
 
 	def _GetLocals(self, irexpr):
+		#TODO
 		pass
 
 	def _GetGlobals(self, irexpr):
+		#TODO
 		pass
 	
 	def _GetModule(self, irexpr):
+		#TODO
 		pass
 
 	def _MakeFunction(self, irexpr):
+		#TODO
 		pass
 
 	def _MakeClass(self, irexpr):
+		#TODO
 		#TOFIX: Classes in C? Not sure I comprehend this...
 		pass
