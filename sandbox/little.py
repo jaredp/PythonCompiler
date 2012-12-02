@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+a = 4
+a = plus(a, 6)
+print a
+
+=======
 
 #a = len(range(20)[1:5])
 #b, c = a, b
@@ -32,3 +38,4 @@ while lt(i, 20):
 	i = p1(i)
 '''
 #raise StopIteration
+>>>>>>> 96bc6f78de9c324c0165002268f5c1e741eb9a1c
