@@ -65,14 +65,16 @@ class CTranslator(object):
 	########################################################
 
 	def generateProgram(self, program):
-		#TOFIX: namespace is an IRVAR with a single value, or is value a collection of different values??
+		self.write('#include <Python.h>')
+		self.fill()
+
 		for module in program.modules:
 			for var in module.namespace.values():
 				self.declare(var.name)
+		self.fill()
 
 		for function in program.codes:
 			self.generateFunction(function)
-
 		self.fill()
 
 	def generateFunction(self, function):

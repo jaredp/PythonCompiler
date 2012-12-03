@@ -1,14 +1,13 @@
-SOURCES = fibpy.cpp
+APYLIB = /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/ 
+UPYLIB = /usr/include/python2.7
+PYLIB = ${APYLIB}
 
-apy++ : $(SOURCES)
-	g++	-Wall \
-	-I /System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/ \
-	$(SOURCES) -lpython2.7 -o apy++
-
-
-upy++ : $(SOURCES)
-	g++ -I /usr/include/python2.7 -o upy++ $(SOURCES)
+little : little.cpp
+	g++ -I ${PYLIB} little.cpp -o little
 	
+little.cpp : little.py
+	py++ little.py > little.cpp
+
 .PHONY : clean
 clean :
-	rm -f apy++ upy++
+	rm -f little.cpp little

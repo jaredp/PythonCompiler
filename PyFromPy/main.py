@@ -6,8 +6,8 @@ import IRtoC
 
 command_line_flags = {}
 
-def _main():
-	program = AstTranslator.translateFile(sys.argv[1])
+def _main(mainfile):
+	program = AstTranslator.translateFile(mainfile)
 	Optimizer.correct(program)
 
 	if '-i' in command_line_flags:
@@ -70,9 +70,15 @@ def parseFlags(flags):
 
 def main():
 	try:
+		parseFlags(sys.argv[1:])
+		files = command_line_flags['files']
+		if len(files) != 1:
+			print 'usage: py++ file -flags'
+			exit()
+		mainfile = files[0]
+		
 		try:
-			parseFlags(sys.argv)
-			_main()
+			_main(mainfile)
 		except AstTranslator.UserProgramError as e:
 			if '-ce' in command_line_flags: raise
 			else: print e
