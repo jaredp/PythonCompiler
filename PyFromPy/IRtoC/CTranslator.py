@@ -1,52 +1,54 @@
 from IR import *
 import sys
-import cStringIO
-import os
 
-class CTRanslator(object):
+class CTranslator(object):
 
-	def __init__(self, tree, file = sys.stdout):
+	def __init__(self, file = sys.stdout):
 		self.f = file
-		self.future_imports = []
 		self._indent = 0
-		self.dispatch(tree)
-		self.f.write("")
-		self.f.flush()
-
-	def generateC(mod):
-		file = sys.stdout
-		for irop in mod.body:
-			cexpr = translateExpr(irop)
 
 	def fill(self, text = ""):
 		"Indent a piece of text, according to the current indentation level"
-		self.f.write("\n"+"	"*self._indent + text)
+		self.f.write('\n'+'	'*self._indent + text)
 
 	def write(self, text):
 		"Append a piece of text to the current line."
 		self.f.write(text)
 
-	def enter(self):
-		"Print ':', and increase the indentation."
-		self.write(":")
+
+	def genBlock(self, block):
+		self.write('{')
+		self.genStmts(block)
+		self.fill('}')
+
+
+	def genStmts(self, block):
 		self._indent += 1
 
-	def leave(self):
-		"Decrease the indentation level."
+		for stmt in block:
+			if isinstance(stmt, IROperation):
+				self.genOp(stmt)
+
+			elif isinstance(stmt, IRBlockStatement):
+				self.dispatch(stmt)
+
 		self._indent -= 1
+
+
+	def genOp(self, op):
+		if isinstance(op, IRProducingOp) and op.target:
+			self.fill('%s = ' % op.target)
+		else:
+			self.fill()
+
+		self.dispatch(op)
+		self.write(';')
+
 
 	def dispatch(self, tree):
 		"Dispatcher function, dispatching tree type T to method _T."
-		if isinstance(tree, list):
-			for t in tree:
-				self.dispatch(t)
-			return
-		attr = "_"+tree.__class__.__name__
-		if hasattr(self, attr):
-			meth = getattr(self, attr)
-			meth(tree)
-		else:
-			self.write(repr(attr))
+		meth = getattr(self, '_'+tree.__class__.__name__)
+		return meth(tree)
 
 	def translateExpr(s, irexpr):
 		meth = getattr(s, '_'+irexpr.__class__.__name__)
@@ -59,34 +61,20 @@ class CTRanslator(object):
 	# currently doesn't.								   #
 	########################################################
 
+	def _IRVar(self, var):
+		self.write(repr(var))
+
 	def _If(self, irexpr):
 		#TODO
-		self.fill("if ")
-		self.dispatch(irexpr.condition)
-		self.enter()
-		self.dispatch(irexpr.then)
-		self.leave()
-		# collapse nested ifs into equivalent elifs.
-		#TOFIX: Nested if's not handled properly
-		while (irexpr.orelse and len(irexpr.orelse) == 1 and
-			   isinstance(irexpr.orelse[0], ir.If)):
-			irexpr = irexpr.orelse[0]
-			self.fill("else if ")
-			self.dispatch(irexpr.condition)
-			self.enter()
-			self.dispatch(irexpr.then)
-			self.leave()
-		# final else
-		if t.orelse:
-			self.fill("else")
-			self.enter()
-			self.dispatch(irexpr.orelse)
-			self.leave()
+		self.fill("if (%s) " % irexpr.condition)
+		self.genBlock(irexpr.then)
+		if irexpr.orelse:
+			self.write(" else ")
+			self.genBlock(irexpr.orelse)
 
 	def _Loop(self, irexpr):
-		#TODO
-		#TOFIX: Do we not have different classes for different loop types?
-		pass
+		self.fill('while (1) ')
+		self.genBlock(irexpr.body)
 
 	def _Try(self, irexpr):
 		#TODO
@@ -94,20 +82,15 @@ class CTRanslator(object):
 		pass
 
 	def _Return(self, irexpr):
-		self.fill("return")
-		if irexpr.value:
-			self.write(" ")
-			self.dispatch(t.value)
-		self.write(";")
+		self.write("return %s" % irexpr.value)
 
 	def _Yield(self, irexpr):
-		self.write("(")
-		self.write("yield")
-		if irexpr.value:
-			self.write(" ")
-			self.dispatch(irexpr.value)
-		self.write(")")
-		self.write(";")
+		'''
+		Generators are considerably complicated,
+		and require tricky C generation support.
+		Yield is not a keyword in C/C++
+		'''
+		raise NotImplementedError
 
 	def _Raise(self, irexpr):
 		self.fill('raise ')
@@ -118,45 +101,53 @@ class CTRanslator(object):
 			self.dispatch(irexpr.inst)
 		if irexpr.tback:
 			self.write(", ")
-			self.dispatch(t.tback)
+			self.dispatch(irexpr.tback)
 		self.write(";")
 	
 	def _Break(self, irexpr):
-		self.fill("break")
-		self.write(";")
+		self.write("break")
 
 	def _Continue(self, irexpr):
-		self.fill("continue")
-		self.write(";")
+		self.write("continue")
 
 	def _AssignAttr(self, irexpr):
-		self.fill()
-		self.dispatch(irexpr.obj)
-		self.write(".")
-		self.dispatch(irexpr.attr)
-		self.write(" = ")
-		self.dispatch(irexpr.value)
-		self.write(";")
+		'''
+		We *may* need to do the whole python attr lookup thing
+		call obj.__setattr__ etc
+		'''
+		self.write("%s.%s = %s" % (irexpr.obj, irexpr.attr, irexpr.value))
 
 	def _AssignSubscript(self, irexpr):
-		self.fill()
-		self.dispatch(irexpr.obj)
-		self.write(".")
-		self.dispatch(irexpr.subscript)
-		self.write(" = ")
-		self.dispatch(irexpr.value)
-		self.write(";")
+		'''
+		This will almost definitely be a stdlib libary call
+		It will likely be removed as an op from the IR
+		'''
+		self.write("%s[%s] = %s" % (irexpr.obj, irexpr.subscript, irexpr.value))
 
 	def _AssignSlice(self, irexpr):
 		#TODO
 		pass
 	
 	def _DeleteVar(self, irexpr):
-		self.write("delete" + " ")
-		self.dispatch(irexpr.var)
-		self.write(";")
+		'''
+		Delete is the Python `del`, which unbinds a name.
+		For now, according to the CPython C-API, the python del 
+		statement translates to lowering the refcount and setting the
+		variable to NULL.
+		This actually raises a whole host of ugly questions about how
+		to identify and handle unbound names.
+		The most obvious solution is to precede all operations with a
+		null-check on their operands, but this is ham-fisted as there
+		are ways to show which (many) are unnecessary.
+		Furthermore, the del statement is pretty rare in python code
+		anyway.
+		'''
+		self.write('Py_DECREF(%s); %s = NULL' % (irexpr.var, irexpr.var))
 
 	def _DeleteAttr(self, irexpr):
+		'''
+		Like _AssignSubscript, this will go away
+		''' 
 		self.write("delete" + " ")
 		self.dispatch(irexpr.obj)
 		self.write(".")
@@ -176,6 +167,9 @@ class CTRanslator(object):
 	#				"FloorDiv":"//", "Pow": "**"}
 
 	def _BinOp(self, irexpr):
+		'''
+		These, especially, will likely become stdlib calls
+		'''
 		self.write("(")
 		self.dispatch(irexpr.lhs)
 		self.write(" " + self.op[irexpr.op.__class__.__name__] + " ")
@@ -203,6 +197,16 @@ class CTRanslator(object):
 		self.write(";")
 
 	def _FCall(self, irexpr):
+		'''
+		The function calling mechanism will be among the most
+		complex, and in some ways are the focus of this 
+		research.  C certainly doesn't have the type of variable
+		argument function calling mechanism Python does, so this
+		is not a straightforward translation.
+		For now, we're going to just call the _ConstCall mechanism.
+		'''
+		return self._ConstCall(irexpr)
+
 		self.dispatch(irexpr.fn)
 		self.write("(")
 		comma = False
@@ -224,10 +228,15 @@ class CTRanslator(object):
 			else: comma = True
 			self.write("**")
 			self.dispatch(irexpr.kwargs)
+		
 		self.write(")")
-		self.write(";")
 
 	def _MethodCall(self, irexpr):
+		'''
+		This is the _FCall mechanism, with all the added fun of
+		class attribute lookup.  It's entirely possible we wont
+		get to classes, and not get to this.
+		'''
 		self.dispatch(irexpr.fn)
 		self.write("(")
 		comma = False
@@ -253,34 +262,35 @@ class CTRanslator(object):
 		self.write(";")
 
 	def _ConstCall(self, irexpr):
+<<<<<<< HEAD
 		#TOFIX: Not sure about syntax
 		pass
+=======
+		args = ', '.join(map(repr, irexpr.args))
+		self.write('%s(%s)' % (irexpr.fn, args))
+>>>>>>> ed20b52809c675e67a83eccb4f6dba980cb307d3
 	
 	def _Assign(self, irexpr):
-		self.fill()
-		self.dispatch(irexpr.target)
-		self.write(" = ")
-		self.dispatch(irexpr.rhs)
-		self.write(";")
+		self.write(repr(irexpr.rhs))
 
 	def _Attr(self, irexpr):
-		self.dispatch(irexpr.obj)
-		# Special case: 3.__abs__() is a syntax error, so if t.value
-		# is an integer literal then we need to either parenthesize
-		# it or add an extra space to get 3 .__abs__().
-		#if isinstance(irexpr.obj, ir.Num) and isinstance(t.obj.n, int):
-		#	self.write(" ")
-		self.write(".")
-		self.write(irexpr.attr)
+		'''
+		same deal as _AssignAttr -- this may need to Python
+		'''
+		self.write('%s.%s' % (irexpr.obj, irexpr.attr))
 
 	def _Subscript(self, irexpr):
-		self.dispatch(irexpr.obj)
-		self.write("[")
-		self.dispatch(irexpr.subscript)
-		self.write("]")
-		self.write(";")
+		'''
+		same deal as _AssignSubscript
+		'''
+		self.write("%s[%s]" % (irexpr.obj, irexpr.subscript))
+
 
 	def _Slice(self, irexpr):
+		'''
+		same deal as _AssignSlice
+		'''
+
 		if irexpr.lower:
 			self.dispatch(irexpr.start)
 		self.write(":")

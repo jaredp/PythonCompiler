@@ -53,3 +53,5 @@ Move IR emission to AstTranslator -- this will be a PITA in optimization otherwi
 TODO: Methods are currently undetected.  I believe this should happen in _Call
 
 If there are multiple exception handlers, and one catches, but then raises an exception, are the others considered?
+
+TODO: in function generation, append a return None.  TODO: optimization to remove code in a block after an unconditional return 

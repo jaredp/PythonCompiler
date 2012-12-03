@@ -107,7 +107,10 @@ class ControlFlow:
 		raise NotImplementedError
 	
 	def _Return(t, value):
-		return Return(t(value))
+		if value:
+			return Return(t(value))
+		else:
+			return Return(NoneLiteral())
 	
 	def _Yield(t, value):
 		return Yield(t(value))
