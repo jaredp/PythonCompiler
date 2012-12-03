@@ -12,7 +12,7 @@ def generateFunction(function):
 
 	args = ', '.join(map(repr, function.argvars))
 	print 'PyObject *%s(%s) {' % (function.cname, args),
-	#FIXME: somewhere here, put the args
+	#FIXME: somewhere here, put the locals
 	translator.genStmts(function.body)
 	print
 	print '}'
