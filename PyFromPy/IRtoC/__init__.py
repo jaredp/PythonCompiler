@@ -5,6 +5,9 @@ def generateProgram(program):
 		generateFunction(function)
 
 def generateFunction(function):
+	
+	#define locals and globals
+
 	translator = CTranslator()
 
 	args = ', '.join(map(repr, function.argvars))

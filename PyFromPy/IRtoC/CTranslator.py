@@ -106,9 +106,11 @@ class CTranslator(object):
 	
 	def _Break(self, irexpr):
 		self.write("break")
+		self.write(";")
 
 	def _Continue(self, irexpr):
 		self.write("continue")
+		self.write(";")
 
 	def _AssignAttr(self, irexpr):
 		'''
@@ -305,10 +307,12 @@ class CTranslator(object):
 		#TODO
 		pass
 
+	#Get current exception using CPython-C API
 	def _GetException(self, irexpr):
 		#TODO
 		pass
 
+	#Correspond to globals and locals functions in Python, we can ignore those, they should be optimized
 	def _GetLocals(self, irexpr):
 		#TODO
 		pass
@@ -317,15 +321,21 @@ class CTranslator(object):
 		#TODO
 		pass
 	
+	#Take IRClass/IRFunction/IRModule and turn them into py objects:
+
 	def _GetModule(self, irexpr):
 		#TODO
 		pass
 
 	def _MakeFunction(self, irexpr):
 		#TODO
+		#Treat the function as a function pointer, C does not have nested functions unlike Python
+		#PyObjectFromCPointer(b_)
 		pass
 
 	def _MakeClass(self, irexpr):
 		#TODO
 		#TOFIX: Classes in C? Not sure I comprehend this...
+		#Create Py pipe, It should be a CPython/C API thing
+		#For now we'll forget about it
 		pass
