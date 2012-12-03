@@ -3,7 +3,7 @@ import sys
 import cStringIO
 import os
 
-class CTRanslator(object):
+class CTranslator(object):
 
 	def __init__(self, tree, file = sys.stdout):
 		self.f = file
