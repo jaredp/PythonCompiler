@@ -2,7 +2,7 @@
 
 import AstTranslator
 import IR
-from IRtoC.CTranslator import CTranslator
+import IRtoC
 
 command_line_flags = {}
 
@@ -11,7 +11,7 @@ def _main():
 	if '-i' in command_line_flags:
 		program.pprint()
 	else:
-		CTranslator(program)
+		IRtoC.generateProgram(program)
 
 
 # http://code.activestate.com/recipes/52215/
