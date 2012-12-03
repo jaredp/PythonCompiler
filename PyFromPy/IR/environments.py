@@ -2,6 +2,7 @@ from base import IRNode
 from ir import IRVar
 from utils import uniqueID
 
+'''
 class Namespace(object):
 	__slots__ = [
 		'members',			# {pyname -> IRVar}
@@ -22,7 +23,7 @@ class Namespace(object):
 
 	def __repr__(self):
 		return repr(self.members)
-
+'''
 
 class IRFunction(object):
 	'''Abstract base class of IRCode and IRBuiltinFunction (stdlib.py)'''
@@ -58,7 +59,7 @@ class IRCode(IRFunction):
 		self.pyname = pyname
 		
 		self.body = []
-		self.namespace = Namespace(expandable=False)
+		self.namespace = {}
 		
 		# some reasonable defaults
 		self.globals = set()
@@ -92,7 +93,7 @@ class IRModule(object):
 		self.docstring = None
 		self.name = name
 
-		self.namespace = Namespace(expandable=True)
+		self.namespace = {}
 		self.initcode = IRCode('load'+name)
 		self.initcode.args = []
 		

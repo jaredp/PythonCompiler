@@ -1,13 +1,15 @@
 #!/usr/bin/python
 
 import AstTranslator
-import IR
+import Optimizer
 import IRtoC
 
 command_line_flags = {}
 
 def _main():
 	program = AstTranslator.translateFile(sys.argv[1])
+	Optimizer.correct(program)
+
 	if '-i' in command_line_flags:
 		program.pprint()
 	else:

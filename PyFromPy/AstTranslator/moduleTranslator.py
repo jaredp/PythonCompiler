@@ -28,6 +28,10 @@ class ModuleTranslator:
 		self.module.docstring = self.docstring
 		self.module.namespace = self.namespace
 
+		self.module.initcode.globals = set(self.namespace.keys())
+		self.module.initcode.namespace = self.namespace
+		# the initcode's namespace IS the global namespace
+
 	def declareGlobal(self, gbl):
 		self.error('global declaration illegal in global scope')
 

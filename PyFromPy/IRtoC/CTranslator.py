@@ -73,10 +73,7 @@ class CTranslator(object):
 		for function in program.codes:
 			self.generateFunction(function)
 
-		#define locals and globals
-		#PyObject *a$0;
-		#locals: IRCode.temporaries
-		#globals: IRModule.namespace.values()
+		self.fill()
 
 	def generateFunction(self, function):
 		args = ', '.join(map(repr, function.argvars))
