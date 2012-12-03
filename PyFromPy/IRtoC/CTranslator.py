@@ -1,8 +1,12 @@
 from IR import *
 import sys
-from ctypes import *
+#from ctypes import *	-- WHY WAS THIS HERE?
 
 class CTranslator(object):
+
+	########################################################
+	# infastructure
+	########################################################
 
 	def __init__(self, file = sys.stdout):
 		self.f = file
@@ -16,25 +20,26 @@ class CTranslator(object):
 		"Append a piece of text to the current line."
 		self.f.write(text)
 
-
 	def genBlock(self, block):
-		self.write('{')
+		self.enterBlock()
 		self.genStmts(block)
-		self.fill('}')
+		self.exitBlock()
 
-
-	def genStmts(self, block):
+	def enterBlock(self):
+		self.write('{')
 		self._indent += 1
 
+	def exitBlock(self):
+		self._indent -= 1
+		self.fill('}')
+
+	def genStmts(self, block):
 		for stmt in block:
 			if isinstance(stmt, IROperation):
 				self.genOp(stmt)
 
 			elif isinstance(stmt, IRBlockStatement):
 				self.dispatch(stmt)
-
-		self._indent -= 1
-
 
 	def genOp(self, op):
 		if isinstance(op, IRProducingOp) and op.target:
@@ -54,6 +59,43 @@ class CTranslator(object):
 	def translateExpr(s, irexpr):
 		meth = getattr(s, '_'+irexpr.__class__.__name__)
 		return meth(irexpr)
+
+	########################################################
+	# high level generators
+	########################################################
+
+	def generateProgram(self, program):
+		#TOFIX: namespace is an IRVAR with a single value, or is value a collection of different values??
+		for module in program.modules:
+			for var in module.namespace.values():
+				self.declare(var.name)
+
+		for function in program.codes:
+			self.generateFunction(function)
+
+		#define locals and globals
+		#PyObject *a$0;
+		#locals: IRCode.temporaries
+		#globals: IRModule.namespace.values()
+
+	def generateFunction(self, function):
+		args = ', '.join(map(repr, function.argvars))
+		self.fill('PyObject *%s(%s) ' % (function.cname, args))
+
+		self.enterBlock()
+
+		lcls = [function.namespace[lcl] for lcl in function.locals]
+		for localvar in set(lcls) | function.temporaries:
+			self.declare(localvar.name)
+		self.fill()
+
+		self.genStmts(function.body)
+		self.exitBlock()
+
+		self.fill()
+
+	def declare(self, varname):
+		self.fill('PyObject *%s = NULL;' % varname)
 
 	############### C Translating methods ##################
 	# There should be one method per concrete grammar type #
@@ -265,13 +307,8 @@ class CTranslator(object):
 		self.write(";")
 
 	def _ConstCall(self, irexpr):
-<<<<<<< HEAD
-		#TOFIX: Not sure about syntax
-		pass
-=======
 		args = ', '.join(map(repr, irexpr.args))
 		self.write('%s(%s)' % (irexpr.fn, args))
->>>>>>> ed20b52809c675e67a83eccb4f6dba980cb307d3
 	
 	def _Assign(self, irexpr):
 		self.write(repr(irexpr.rhs))
@@ -313,22 +350,14 @@ class CTranslator(object):
 		#TODO
 		pass
 
-	#Correspond to globals and locals functions in Python, we can ignore those, they should be optimized
-	def _GetLocals(self, irexpr):
-		#TODO
-		pass
-
-	def _GetGlobals(self, irexpr):
-		#TODO
-		pass
-	
 	#Take IRClass/IRFunction/IRModule and turn them into py objects:
-
 	def _GetModule(self, irexpr):
 		#TODO
 		pass
 
-	def _MakeFunction(self, irexpr):
+	def _MakeFunction(self, op):
+		self.write('P3MakeFunction(%s, "%s")' % (op.code.cname, op.code.pyname))
+
 		#Treat the function as a function pointer, C does not have nested functions unlike Python
 		#PyObject From CPointer irexpr.cname
 		#TOFIX: Doublecheck, I've generated the C function pointer, 
@@ -336,11 +365,14 @@ class CTranslator(object):
 		#self.write("PyCObject_FromVoidPtr(%s, NULL)" %(irexpr.cname) )
 		#self.write(";")
 
+		# we should probably write a C function that does all of this...
+		'''
 		self.write("PyObject* (*%s)(PyObject*,PyObject*) = %s;" %(irexpr.pyname, irexpr.cname) )
 		self.write("PyMethodDef %smethd = {\"function\",%s,METH_VARARGS,\"A new function\"};" %(irexpr.pyname, irexpr.pyname) )
 		self.write("PyObject* %sname = PyString_FromString(%smethd.ml_name);" %(irexpr.cname, irexpr.pyname) )
 		self.write("PyObject* pyfoo = PyCFunction_NewEx(&%smethd,NULL,name);" %(irexpr.pyname) )
 		self.write("Py_DECREF(%sname);" % (irexpr.cname) )
+		'''
 
 	def _MakeClass(self, irexpr):
 		#TODO

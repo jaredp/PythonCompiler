@@ -55,6 +55,7 @@ class FunctionTranslator:
 		self.function.docstring = self.docstring
 		self.function.namespace = self.namespace
 		self.function.globals = self.getGlobals()
+		self.function.locals = self.getLocals() - set(self.function.args)
 		
 
 @translatorMixin

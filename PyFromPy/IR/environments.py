@@ -46,7 +46,8 @@ class IRCode(IRFunction):
 		'argvars', 		# [IRVar]
 		'defaults',		# [pyname] ?
 
-		'globals',		# set(IRVar) ?
+		'globals',		# set(pyname) ?
+		'locals',		# set(pyname)
 		'temporaries',	# set(IRVar)
 		'namespace',	# {pyname -> IRVar}
 						# locals, args, globals, captures, defaults
@@ -60,6 +61,10 @@ class IRCode(IRFunction):
 		self.namespace = Namespace(expandable=False)
 		
 		# some reasonable defaults
+		self.globals = set()
+		self.locals = set()
+		self.temporaries = set()
+
 		self.defaults = []
 		self.args = []
 		self.argvars = []
