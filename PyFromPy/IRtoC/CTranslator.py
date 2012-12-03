@@ -1,5 +1,6 @@
 from IR import *
 import sys
+from ctypes import *
 
 class CTranslator(object):
 
@@ -106,9 +107,11 @@ class CTranslator(object):
 	
 	def _Break(self, irexpr):
 		self.write("break")
+		self.write(";")
 
 	def _Continue(self, irexpr):
 		self.write("continue")
+		self.write(";")
 
 	def _AssignAttr(self, irexpr):
 		'''
@@ -262,8 +265,13 @@ class CTranslator(object):
 		self.write(";")
 
 	def _ConstCall(self, irexpr):
+<<<<<<< HEAD
+		#TOFIX: Not sure about syntax
+		pass
+=======
 		args = ', '.join(map(repr, irexpr.args))
 		self.write('%s(%s)' % (irexpr.fn, args))
+>>>>>>> ed20b52809c675e67a83eccb4f6dba980cb307d3
 	
 	def _Assign(self, irexpr):
 		self.write(repr(irexpr.rhs))
@@ -300,10 +308,12 @@ class CTranslator(object):
 		#TODO
 		pass
 
+	#Get current exception using CPython-C API
 	def _GetException(self, irexpr):
 		#TODO
 		pass
 
+	#Correspond to globals and locals functions in Python, we can ignore those, they should be optimized
 	def _GetLocals(self, irexpr):
 		#TODO
 		pass
@@ -312,15 +322,29 @@ class CTranslator(object):
 		#TODO
 		pass
 	
+	#Take IRClass/IRFunction/IRModule and turn them into py objects:
+
 	def _GetModule(self, irexpr):
 		#TODO
 		pass
 
 	def _MakeFunction(self, irexpr):
-		#TODO
-		pass
+		#Treat the function as a function pointer, C does not have nested functions unlike Python
+		#PyObject From CPointer irexpr.cname
+		#TOFIX: Doublecheck, I've generated the C function pointer, 
+		
+		#self.write("PyCObject_FromVoidPtr(%s, NULL)" %(irexpr.cname) )
+		#self.write(";")
+
+		self.write("PyObject* (*%s)(PyObject*,PyObject*) = %s;" %(irexpr.pyname, irexpr.cname) )
+		self.write("PyMethodDef %smethd = {\"function\",%s,METH_VARARGS,\"A new function\"};" %(irexpr.pyname, irexpr.pyname) )
+		self.write("PyObject* %sname = PyString_FromString(%smethd.ml_name);" %(irexpr.cname, irexpr.pyname) )
+		self.write("PyObject* pyfoo = PyCFunction_NewEx(&%smethd,NULL,name);" %(irexpr.pyname) )
+		self.write("Py_DECREF(%sname);" % (irexpr.cname) )
 
 	def _MakeClass(self, irexpr):
 		#TODO
 		#TOFIX: Classes in C? Not sure I comprehend this...
+		#Create Py pipe, It should be a CPython/C API thing
+		#For now we'll forget about it
 		pass
