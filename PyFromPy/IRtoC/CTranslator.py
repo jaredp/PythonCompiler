@@ -253,6 +253,7 @@ class CTRanslator(object):
 		self.write(";")
 
 	def _ConstCall(self, irexpr):
+		#TOFIX: Not sure about syntax
 		pass
 	
 	def _Assign(self, irexpr):
