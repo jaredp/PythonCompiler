@@ -70,6 +70,7 @@ class IRCode(IRFunction):
 class IRClass(object): __slots__ = [
 	'name',			#C name
 	'definedname',	#name defined in Python
+	'namespace' 	
 	#types
 ]
 	
