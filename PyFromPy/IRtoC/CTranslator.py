@@ -5,18 +5,12 @@ import os
 
 class CTranslator(object):
 
-	def __init__(self, tree, file = sys.stdout):
+	def __init__(self, block, file = sys.stdout):
 		self.f = file
-		self.future_imports = []
 		self._indent = 0
-		self.dispatch(tree)
-		self.f.write("")
+		self.genBlock(block)
+		self.f.write('\n')
 		self.f.flush()
-
-	def generateC(mod):
-		file = sys.stdout
-		for irop in mod.body:
-			cexpr = translateExpr(irop)
 
 	def fill(self, text = ""):
 		"Indent a piece of text, according to the current indentation level"
@@ -26,27 +20,35 @@ class CTranslator(object):
 		"Append a piece of text to the current line."
 		self.f.write(text)
 
-	def enter(self):
-		"Print ':', and increase the indentation."
-		self.write(":")
+
+	def genBlock(self, block):
+		self.write('{')
 		self._indent += 1
 
-	def leave(self):
-		"Decrease the indentation level."
+		for stmt in block:
+			if isinstance(stmt, IROperation):
+				self.genOp(stmt)
+
+			elif isinstance(stmt, IRBlockStatement):
+				self.dispatch(stmt)
+
 		self._indent -= 1
+		self.fill('{')
+
+	def genOp(self, op):
+		if isinstance(op, IRProducingOp) and op.target:
+			self.fill('%s = ' % op.target)
+		else:
+			self.fill()
+
+		self.dispatch(op)
+		self.write(';\n')
+
 
 	def dispatch(self, tree):
 		"Dispatcher function, dispatching tree type T to method _T."
-		if isinstance(tree, list):
-			for t in tree:
-				self.dispatch(t)
-			return
-		attr = "_"+tree.__class__.__name__
-		if hasattr(self, attr):
-			meth = getattr(self, attr)
-			meth(tree)
-		else:
-			self.write(repr(attr))
+		meth = getattr(self, '_'+tree.__class__.__name__)
+		return meth(tree)
 
 	def translateExpr(s, irexpr):
 		meth = getattr(s, '_'+irexpr.__class__.__name__)
@@ -59,34 +61,20 @@ class CTranslator(object):
 	# currently doesn't.								   #
 	########################################################
 
+	def _IRVar(self, var):
+		self.write(repr(var))
+
 	def _If(self, irexpr):
 		#TODO
-		self.fill("if ")
-		self.dispatch(irexpr.condition)
-		self.enter()
-		self.dispatch(irexpr.then)
-		self.leave()
-		# collapse nested ifs into equivalent elifs.
-		#TOFIX: Nested if's not handled properly
-		while (irexpr.orelse and len(irexpr.orelse) == 1 and
-			   isinstance(irexpr.orelse[0], ir.If)):
-			irexpr = irexpr.orelse[0]
-			self.fill("else if ")
-			self.dispatch(irexpr.condition)
-			self.enter()
-			self.dispatch(irexpr.then)
-			self.leave()
-		# final else
-		if t.orelse:
-			self.fill("else")
-			self.enter()
-			self.dispatch(irexpr.orelse)
-			self.leave()
+		self.fill("if (%s) " % irexpr.condition)
+		self.genBlock(irexpr.then)
+		if irexpr.orelse:
+			self.write(" else ")
+			self.genBlock(irexpr.orelse)
 
 	def _Loop(self, irexpr):
-		#TODO
-		#TOFIX: Do we not have different classes for different loop types?
-		pass
+		self.fill('while (1) ')
+		self.genBlock(irexpr.body)
 
 	def _Try(self, irexpr):
 		#TODO
@@ -94,10 +82,10 @@ class CTranslator(object):
 		pass
 
 	def _Return(self, irexpr):
-		self.fill("return")
+		self.write("return %s" % irexpr.value)
 		if irexpr.value:
 			self.write(" ")
-			self.dispatch(t.value)
+			self.dispatch(irexpr.value)
 		self.write(";")
 
 	def _Yield(self, irexpr):
@@ -118,7 +106,7 @@ class CTranslator(object):
 			self.dispatch(irexpr.inst)
 		if irexpr.tback:
 			self.write(", ")
-			self.dispatch(t.tback)
+			self.dispatch(irexpr.tback)
 		self.write(";")
 	
 	def _Break(self, irexpr):
@@ -210,6 +198,8 @@ class CTranslator(object):
 			if comma: self.write(", ")
 			else: comma = True
 			self.dispatch(e)
+
+		'''
 		for e in irexpr.keywords:
 			if comma: self.write(", ")
 			else: comma = True
@@ -224,6 +214,7 @@ class CTranslator(object):
 			else: comma = True
 			self.write("**")
 			self.dispatch(irexpr.kwargs)
+		'''
 		self.write(")")
 		self.write(";")
 
