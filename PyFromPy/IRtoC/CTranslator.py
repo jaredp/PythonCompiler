@@ -1,5 +1,6 @@
 from IR import *
 import sys
+from ctypes import *
 
 class CTranslator(object):
 
@@ -328,10 +329,18 @@ class CTranslator(object):
 		pass
 
 	def _MakeFunction(self, irexpr):
-		#TODO
 		#Treat the function as a function pointer, C does not have nested functions unlike Python
-		#PyObjectFromCPointer(b_)
-		pass
+		#PyObject From CPointer irexpr.cname
+		#TOFIX: Doublecheck, I've generated the C function pointer, 
+		
+		#self.write("PyCObject_FromVoidPtr(%s, NULL)" %(irexpr.cname) )
+		#self.write(";")
+
+		self.write("PyObject* (*%s)(PyObject*,PyObject*) = %s;" %(irexpr.pyname, irexpr.cname) )
+		self.write("PyMethodDef %smethd = {\"function\",%s,METH_VARARGS,\"A new function\"};" %(irexpr.pyname, irexpr.pyname) )
+		self.write("PyObject* %sname = PyString_FromString(%smethd.ml_name);" %(irexpr.cname, irexpr.pyname) )
+		self.write("PyObject* pyfoo = PyCFunction_NewEx(&%smethd,NULL,name);" %(irexpr.pyname) )
+		self.write("Py_DECREF(%sname);" % (irexpr.cname) )
 
 	def _MakeClass(self, irexpr):
 		#TODO
