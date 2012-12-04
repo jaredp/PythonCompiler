@@ -209,11 +209,17 @@ class CTranslator(object):
 		or fcall.kwargs != []: 
 			raise NotImplementedError
 
-		arglist = ', '.join(map(repr, fcall.args))
-		self.write(
-			'P3Call(%s, %s, (PyObject *[]){%s})' % 
-			(fcall.fn, len(fcall.args), arglist)
-		)
+		if len(fcall.args) == 0:
+			self.write(
+				'P3Call(%s, 0, (PyObject *[]){Py_None})' % 
+				fcall.fn
+			)
+		else:
+			arglist = ', '.join(map(repr, fcall.args))
+			self.write(
+				'P3Call(%s, %s, (PyObject *[]){%s})' % 
+				(fcall.fn, len(fcall.args), arglist)
+			)
 
 	def _MethodCall(self, irexpr):
 		'''

@@ -121,5 +121,35 @@ WRAP_BINOP(AugBitXorBinaryOp, PyNumber_InPlaceXor)
 WRAP_BINOP(AugBitAndBinaryOp, PyNumber_InPlaceAnd)
 WRAP_BINOP(AugFloorDivBinaryOp, PyNumber_InPlaceFloorDivide)
 
+#define WRAP_CMPOP(WRAPPEDNAME, OPID) 							\
+PyObject *WRAPPEDNAME(PyObject *lhs, PyObject *rhs) {			\
+	return THROW_ON_NULL(PyObject_RichCompare(lhs, rhs, OPID));	\
+}
 
+WRAP_CMPOP(EqCmpOp, Py_EQ)
+WRAP_CMPOP(NotEqCmpOp, Py_NE)
+WRAP_CMPOP(LtCmpOp, Py_LT)
+WRAP_CMPOP(LtECmpOp, Py_LE)
+WRAP_CMPOP(GtCmpOp, Py_GT)
+WRAP_CMPOP(GtECmpOp, Py_GE)
 
+PyObject *IsCmpOp(PyObject *lhs, PyObject *rhs) {
+	if (lhs == rhs) {
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
+}
+
+PyObject *IsNotCmpOp(PyObject *lhs, PyObject *rhs) {
+	if (lhs != rhs) {
+		Py_RETURN_TRUE;
+	} else {
+		Py_RETURN_FALSE;
+	}
+}
+
+/*
+PyObject *InCmpOp(PyObject *lhs, PyObject *rhs) {}
+PyObject *NotInCmpOp(PyObject *lhs, PyObject *rhs) {}
+*/

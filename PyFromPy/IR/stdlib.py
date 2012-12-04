@@ -85,3 +85,15 @@ BinaryOp('AugBitXorBinaryOp')
 BinaryOp('AugBitAndBinaryOp')
 BinaryOp('AugFloorDivBinaryOp')
 
+BinaryOp('EqCmpOp')
+BinaryOp('NotEqCmpOp')
+BinaryOp('LtCmpOp')
+BinaryOp('LtECmpOp')
+BinaryOp('GtCmpOp')
+BinaryOp('GtECmpOp')
+BinaryOp('IsCmpOp')
+BinaryOp('IsNotCmpOp')
+BinaryOp('InCmpOp')
+BinaryOp('NotInCmpOp')
+
+

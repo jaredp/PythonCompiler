@@ -25,15 +25,15 @@ class Operations:
 		op = ops[type(op)]
 		return op(lhs, rhs)
 		
-	def _AugAssign(s, target, op, value):
+	def _AugAssign(t, target, op, value):
+		lhs = t(target)
 		'''
 		FIXME: this reevaluates target, which is VERY WRONG
 		If target has side effects, they get evaluated before
 		and after the AugAssign
 		'''
-		lhs = t(target)
 
-		rhs = t(right)
+		rhs = t(value)
 		ops = {
 			Add: stdlib.AugAddBinaryOp,
 			Sub: stdlib.AugSubBinaryOp,
@@ -51,12 +51,31 @@ class Operations:
 		res = ops[type(op)](lhs, rhs)
 		t.makeAssignment(target, res)
 
-	def _BoolOp(s, op, values):
+	def _BoolOp(t, op, values):
 		raise NotImplementedError
 
-	def _UnaryOp(s, op, operand):
+	def _UnaryOp(t, op, operand):
 		raise NotImplementedError
 	
-	def _Compare(s, left, ops, comparators):
-		raise NotImplementedError
-
+	def _Compare(t, left, ops, comparators):
+		lhs = t(left)
+		c_op_switch = {
+			Eq: stdlib.EqCmpOp,
+			NotEq: stdlib.NotEqCmpOp,
+			Lt: stdlib.LtCmpOp,
+			LtE: stdlib.LtECmpOp,
+			Gt: stdlib.GtCmpOp,
+			GtE: stdlib.GtECmpOp,
+			Is: stdlib.IsCmpOp,
+			IsNot: stdlib.IsNotCmpOp,
+			In: stdlib.InCmpOp,
+			NotIn: stdlib.NotInCmpOp
+		}
+		for (c_op, right) in zip(ops, comparators):
+			rhs = t(right)
+			comparison = c_op_switch[type(c_op)](lhs, rhs)
+			'''
+			This should actually do some cool looping thing
+			but it's late and that's underused
+			'''
+			return comparison

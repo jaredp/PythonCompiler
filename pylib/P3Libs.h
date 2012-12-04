@@ -82,3 +82,14 @@ PyObject *AugBitXorBinaryOp(PyObject *lhs, PyObject *rhs);
 PyObject *AugBitAndBinaryOp(PyObject *lhs, PyObject *rhs);
 PyObject *AugFloorDivBinaryOp(PyObject *lhs, PyObject *rhs);
 
+PyObject *EqCmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *NotEqCmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *LtCmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *LtECmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *GtCmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *GtECmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *IsCmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *IsNotCmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *InCmpOp(PyObject *lhs, PyObject *rhs);
+PyObject *NotInCmpOp(PyObject *lhs, PyObject *rhs);
+
