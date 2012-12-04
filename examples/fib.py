@@ -1,5 +1,8 @@
 
-from time import clock as fclock
+#from time import clock as fclock
+
+def fclock():
+	return 0
 
 def fib(n):
 	'''fib computes the nth number of the fibonacci sequence'''

@@ -3,50 +3,58 @@
 import AstTranslator
 import Optimizer
 import IRtoC
-
-from os import system, path
-import platform
+import CppCompiler
 
 command_line_flags = {}
 
 def _main(mainfile):
+	pname = mainfile.rpartition('.')[0]
+	cppfile = pname + '.cpp'
+
 	program = AstTranslator.translateFile(mainfile)
 	Optimizer.correct(program)
+
+	if '-O' in command_line_flags:
+		Optimizer.optimize(program)
 
 	if '-i' in command_line_flags:
 		program.pprint()
 		return
 
-	pname = mainfile.rpartition('.')[0]
-	cppfile = pname + '.cpp'
-
 	IRtoC.generateProgram(program, open(cppfile, 'w'))
 
-	gcc(cppfile, pname)
+	if '-ng' not in command_line_flags:
+		CppCompiler.build(cppfile, pname)
 
-compilerroot = path.dirname(path.dirname(__file__))
-pylibflag = '-lpython2.7'
-if platform.mac_ver()[0] != '':	#is MacOS
-	pyheaders = '/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/'
-else:
-	pyheaders = '/usr/include/python2.7'
 
-def gcc(cppfile, exefile):
-	command = ' '.join([
-		'g++',
-		'-I %s' % pyheaders,
-		'-I %s/pylib' % compilerroot,
+def parseFlags(flags):
+	command_line_flags['files'] = []
+	currentflag = command_line_flags['files']
 
-		 '%s/pylib/P3Lib.o' % compilerroot,
-		 cppfile,
+	for flag in flags:
+		if flag.startswith('-'):
+			command_line_flags[flag] = []
+			currentflag = command_line_flags[flag]
+		else:
+			currentflag.append(flag)
 
-		 pylibflag,
-
-		 '-o %s' % exefile
-	])
-
-	print command
-	system(command)
+def main():
+	try:
+		parseFlags(sys.argv[1:])
+		files = command_line_flags['files']
+		if len(files) != 1:
+			print 'usage: py++ file -flags'
+			exit()
+		mainfile = files[0]
+		
+		try:
+			_main(mainfile)
+		except AstTranslator.UserProgramError as e:
+			if '-ce' in command_line_flags: raise
+			else: print e
+	except:
+		if '-t' in command_line_flags: print_exc_plus()
+		else: raise
 
 # http://code.activestate.com/recipes/52215/
 import sys, traceback
@@ -89,35 +97,7 @@ def print_exc_plus():
 				errlog("\t%20s = <ERROR WHILE PRINTING VALUE>" % key)
 
 
-def parseFlags(flags):
-	command_line_flags['files'] = []
-	currentflag = command_line_flags['files']
-
-	for flag in flags:
-		if flag.startswith('-'):
-			command_line_flags[flag] = []
-			currentflag = command_line_flags[flag]
-		else:
-			currentflag.append(flag)
-
-def main():
-	try:
-		parseFlags(sys.argv[1:])
-		files = command_line_flags['files']
-		if len(files) != 1:
-			print 'usage: py++ file -flags'
-			exit()
-		mainfile = files[0]
-		
-		try:
-			_main(mainfile)
-		except AstTranslator.UserProgramError as e:
-			if '-ce' in command_line_flags: raise
-			else: print e
-	except:
-		if '-t' in command_line_flags: print_exc_plus()
-		else: raise
-
 if __name__ == '__main__':
 	main()
 	
+
