@@ -22,7 +22,7 @@ def build(cppfile, exefile, print_command=False):
 		 cppfile,
 
 		 pylibflag,
-
+		 '-O3',
 		 '-o %s' % exefile
 	])
 
