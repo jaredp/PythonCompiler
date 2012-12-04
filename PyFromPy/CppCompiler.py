@@ -12,6 +12,9 @@ else:
 def build(cppfile, exefile):
 	command = ' '.join([
 		'g++',
+
+		'-Wall',
+
 		'-I %s' % pyheaders,
 		'-I %s/pylib' % compilerroot,
 

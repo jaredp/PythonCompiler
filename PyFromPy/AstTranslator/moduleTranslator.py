@@ -24,7 +24,10 @@ class ModuleTranslator:
 			self.module.initcode.body, 
 			astcode
 		)
-		
+
+		with IRBlock(self.module.initcode.body):
+			Return(NoneLiteral())
+
 		self.module.docstring = self.docstring
 		self.module.namespace = self.namespace
 

@@ -1,5 +1,7 @@
 #import <Python.h>
 
+class PythonException {};
+
 int main(int argc, char **argv);
 PyObject *run_main_module();
 
