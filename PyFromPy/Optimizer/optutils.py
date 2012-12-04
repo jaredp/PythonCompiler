@@ -44,3 +44,8 @@ def iterOperations(codeblock):
 
 		else:
 			raise Exception("invalid ir")
+
+def iterOperationsInProgram(program):
+	for fn in program.codes:
+		for op in iterOperations(fn.body):
+			yield op

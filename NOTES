@@ -58,10 +58,6 @@ TODO: optimization to remove code in a block after an unconditional return (or r
 
 Insert an *only once* mechanism into loading modules, and a way to get+clear it for reloads.  Also, add a call to the module's load on imports.
 
-TODO: forward declare functions
-
-TODO: IRAtom -> IRVar 
-
 TODO: MEMORY MANAGEMENT!!
 
 TODO: check if things are defined, raise otherwise
