@@ -27,12 +27,12 @@ class CTranslator(object):
 		self.exitBlock()
 
 	def enterBlock(self):
-		self.write('{')
+		self.write(' {')
 		self._indent += 1
 
 	def exitBlock(self):
 		self._indent -= 1
-		self.fill('}')
+		self.fill('} ')
 
 	def genStmts(self, block):
 		for stmt in block:
@@ -75,13 +75,19 @@ class CTranslator(object):
 		self.fill()
 
 		for function in program.codes:
+			self.fill('%s;' % self.fdeclaration(function))
+		self.fill()
+
+		for function in program.codes:
 			self.generateFunction(function)
 		self.fill()
 
-	def generateFunction(self, function):
+	def fdeclaration(self, function):
 		args = ', '.join(map(self.declaration, function.argvars))
-		self.fill('PyObject *%s(%s) ' % (function.cname, args))
+		return 'PyObject *%s(%s)' % (function.cname, args)
 
+	def generateFunction(self, function):
+		self.fill(self.fdeclaration(function))
 		self.enterBlock()
 
 		lcls = [function.namespace[lcl] for lcl in function.locals]
@@ -121,14 +127,14 @@ class CTranslator(object):
 
 	def _If(self, irexpr):
 		#TODO
-		self.fill("if (%s) " % irexpr.condition)
+		self.fill('if (%s)' % irexpr.condition)
 		self.genBlock(irexpr.then)
 		if irexpr.orelse:
-			self.write(" else ")
+			self.write('else')
 			self.genBlock(irexpr.orelse)
 
 	def _Loop(self, irexpr):
-		self.fill('while (1) ')
+		self.fill('while (1)')
 		self.genBlock(irexpr.body)
 
 	def _Try(self, irexpr):

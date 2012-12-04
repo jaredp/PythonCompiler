@@ -61,3 +61,5 @@ Insert an *only once* mechanism into loading modules, and a way to get+clear it 
 TODO: forward declare functions
 
 TODO: IRAtom -> IRVar 
+
+TODO: MEMORY MANAGEMENT!!
