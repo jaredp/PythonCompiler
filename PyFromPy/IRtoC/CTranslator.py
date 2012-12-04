@@ -71,7 +71,7 @@ class CTranslator(object):
 
 		for module in program.modules:
 			for var in module.namespace.values():
-				self.declare(var.name)
+				self.declare(var)
 		self.fill()
 
 		for function in program.codes:
@@ -92,7 +92,7 @@ class CTranslator(object):
 
 		lcls = [function.namespace[lcl] for lcl in function.locals]
 		for localvar in set(lcls) | function.temporaries:
-			self.declare(localvar.name)
+			self.declare(localvar)
 		self.fill()
 
 		self.genStmts(function.body)
@@ -273,7 +273,7 @@ class CTranslator(object):
 		or fcall.kwargs != []: 
 			raise NotImplementedError
 
-		arglist = ', '.join([a.name for a in fcall.args])
+		arglist = ', '.join(map(repr, fcall.args))
 		self.write(
 			'P3Call(%s, %s, (PyObject *[]){%s})' % 
 			(fcall.fn, len(fcall.args), arglist)
