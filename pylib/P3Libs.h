@@ -8,8 +8,6 @@ PyObject *P3MakeFunction(fptr, const char *);
 
 PyObject *P3Call(PyObject *fn, size_t argcount, PyObject **args);
 
-extern PyObject *P3None; // = something static...
-
 PyObject *P3IntLiteral(long value);
 PyObject *P3FloatLiteral(double value);
 PyObject *P3StringLiteral(const char *value);

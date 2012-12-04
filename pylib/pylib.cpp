@@ -1,12 +1,17 @@
-#import <P3Libs.h>
-
-PyObject *P3None;
+#import "P3Libs.h"
+#import <time.h>
 
 int main(int argc, char **argv) {
-	// TODO: timer!!
+    Py_Initialize();
 
-	//Py_init()?
+    int start = clock();
 	run_main_module();
+    int end = clock();
+
+    float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+    printf("\n%f seconds\n", seconds);
+
+    Py_Finalize();
 	return 0;
 }
 
@@ -21,7 +26,7 @@ PyObject *P3Call(PyObject *fn, size_t argcount, PyObject **args) {
 
 
 PyObject *P3IntLiteral(long value) {
-	return NULL;
+	return PyInt_FromLong(value);
 }
 
 PyObject *P3FloatLiteral(double value) {
@@ -36,72 +41,13 @@ bool isTruthy(PyObject *object) {
 	return true;
 }
 
-PyObject *PyPrint(PyObject *dest, PyObject *obj) {
-
-}
-
 PyObject *MyPrint(PyObject *obj) {
-
+	PyObject_Print(obj, stdout, 0);
+	return Py_None;
 }
 
 PyObject *PyPrintNl() {
-	return NULL;
+	printf("\n");
+	return Py_None;
 }
-
-PyObject *MakeTuple(PyObject *size) {
-	return NULL;
-}
-
-PyObject *SetTupleComponent(PyObject *tuple, PyObject *index, PyObject *value) {
-	return NULL;
-}
-
-PyObject *Iter(PyObject *container) {
-	return NULL;
-}
-
-PyObject *Next(PyObject *iterator) {
-	return NULL;
-}
-
-PyObject *IsStopIterationSignal(PyObject *nextretval) {
-	return nextretval;
-}
-
-PyObject *Globals() {
-	return NULL;
-}
-
-PyObject *Locals() {
-	return NULL;
-}
-
-PyObject *Repr(PyObject *obj) {
-	return NULL;
-}
-
-PyObject *NewList(PyObject *size) {
-	return NULL;
-}
-
-PyObject *ListAppend(PyObject *member) {
-	return NULL;
-}
-
-PyObject *NewSet(PyObject *size) {
-	return NULL;
-}
-
-PyObject *SetAdd(PyObject *member) {
-	return NULL;
-}
-
-PyObject *NewDict(PyObject *size) {
-	return NULL;
-}
-
-PyObject *DictSet(PyObject *dict, PyObject *key, PyObject *value) {
-	return NULL;
-}
-
 

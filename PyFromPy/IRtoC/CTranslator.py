@@ -124,7 +124,7 @@ class CTranslator(object):
 		self.write('P3StringLiteral("%s")' % escapeString(var.value))
 
 	def _NoneLiteral(self, var):
-		self.write('P3None')
+		self.write('Py_None')
 
 	def _If(self, irexpr):
 		#TODO
