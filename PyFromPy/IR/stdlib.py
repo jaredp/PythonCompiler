@@ -54,3 +54,34 @@ class BuiltinException(object):
 		return self.ename
 
 BuiltinException('StopIterationException')
+
+class BinaryOp(BuiltinFn):
+	def __init__(self, name):
+		BuiltinFn.__init__(self, name, 'lhs', 'rhs')
+
+BinaryOp('AddBinaryOp')
+BinaryOp('SubBinaryOp')
+BinaryOp('MultBinaryOp')
+BinaryOp('DivBinaryOp')
+BinaryOp('ModBinaryOp')
+BinaryOp('PowBinaryOp')
+BinaryOp('LShiftBinaryOp')
+BinaryOp('RShiftBinaryOp')
+BinaryOp('BitOrBinaryOp')
+BinaryOp('BitXorBinaryOp')
+BinaryOp('BitAndBinaryOp')
+BinaryOp('FloorDivBinaryOp')
+
+BinaryOp('AugAddBinaryOp')
+BinaryOp('AugSubBinaryOp')
+BinaryOp('AugMultBinaryOp')
+BinaryOp('AugDivBinaryOp')
+BinaryOp('AugModBinaryOp')
+BinaryOp('AugPowBinaryOp')
+BinaryOp('AugLShiftBinaryOp')
+BinaryOp('AugRShiftBinaryOp')
+BinaryOp('AugBitOrBinaryOp')
+BinaryOp('AugBitXorBinaryOp')
+BinaryOp('AugBitAndBinaryOp')
+BinaryOp('AugFloorDivBinaryOp')
+

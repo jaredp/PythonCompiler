@@ -15,7 +15,8 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-#define THROW_ON_NULL(e) ({ typeof(e) a = (e); if (a == NULL) throw PythonException(); a;})
+#define RAISE throw PythonException()
+#define THROW_ON_NULL(e) ({ typeof(e) a = (e); if (a == NULL) RAISE; a;})
 
 
 PyObject *P3MakeFunction(fptr fn, const char *) {
@@ -39,7 +40,12 @@ PyObject *P3StringLiteral(const char *value) {
 }
 
 bool isTruthy(PyObject *object) {
-	return true;
+	char truthiness = PyObject_IsTrue(object);
+	if (truthiness != -1) {
+		return truthiness;
+	} else {
+		RAISE;
+	}
 }
 
 PyObject *MyPrint(PyObject *obj) {
@@ -83,3 +89,37 @@ PyObject *IsStopIterationSignal(PyObject *nextretval) {
 		Py_RETURN_FALSE;
 	} 
 }
+
+#define WRAP_BINOP(WRAPPEDNAME, CPYTHONNAME)			\
+PyObject *WRAPPEDNAME(PyObject *lhs, PyObject *rhs) {	\
+	return THROW_ON_NULL(CPYTHONNAME(lhs, rhs));		\
+}
+
+WRAP_BINOP(AddBinaryOp, PyNumber_Add)
+WRAP_BINOP(SubBinaryOp, PyNumber_Subtract)
+WRAP_BINOP(MultBinaryOp, PyNumber_Multiply)
+WRAP_BINOP(DivBinaryOp, PyNumber_Divide)
+WRAP_BINOP(ModBinaryOp, PyNumber_Remainder)
+//WRAP_BINOP(PowBinaryOp, PyNumber_Power)
+WRAP_BINOP(LShiftBinaryOp, PyNumber_Lshift)
+WRAP_BINOP(RShiftBinaryOp, PyNumber_Rshift)
+WRAP_BINOP(BitOrBinaryOp, PyNumber_Or)
+WRAP_BINOP(BitXorBinaryOp, PyNumber_Xor)
+WRAP_BINOP(BitAndBinaryOp, PyNumber_And)
+WRAP_BINOP(FloorDivBinaryOp, PyNumber_FloorDivide)
+
+WRAP_BINOP(AugAddBinaryOp, PyNumber_InPlaceAdd)
+WRAP_BINOP(AugSubBinaryOp, PyNumber_InPlaceSubtract)
+WRAP_BINOP(AugMultBinaryOp, PyNumber_InPlaceMultiply)
+WRAP_BINOP(AugDivBinaryOp, PyNumber_InPlaceDivide)
+WRAP_BINOP(AugModBinaryOp, PyNumber_InPlaceRemainder)
+//WRAP_BINOP(AugPowBinaryOp, )
+WRAP_BINOP(AugLShiftBinaryOp, PyNumber_InPlaceLshift)
+WRAP_BINOP(AugRShiftBinaryOp, PyNumber_InPlaceRshift)
+WRAP_BINOP(AugBitOrBinaryOp, PyNumber_InPlaceOr)
+WRAP_BINOP(AugBitXorBinaryOp, PyNumber_InPlaceXor)
+WRAP_BINOP(AugBitAndBinaryOp, PyNumber_InPlaceAnd)
+WRAP_BINOP(AugFloorDivBinaryOp, PyNumber_InPlaceFloorDivide)
+
+
+

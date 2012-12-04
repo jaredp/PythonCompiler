@@ -54,3 +54,31 @@ PyObject *SetAdd(PyObject *member);
 
 PyObject *NewDict(PyObject *size);
 PyObject *DictSet(PyObject *dict, PyObject *key, PyObject *value);
+
+
+PyObject *AddBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *SubBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *MultBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *DivBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *ModBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *PowBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *LShiftBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *RShiftBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *BitOrBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *BitXorBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *BitAndBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *FloorDivBinaryOp(PyObject *lhs, PyObject *rhs);
+
+PyObject *AugAddBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugSubBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugMultBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugDivBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugModBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugPowBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugLShiftBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugRShiftBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugBitOrBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugBitXorBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugBitAndBinaryOp(PyObject *lhs, PyObject *rhs);
+PyObject *AugFloorDivBinaryOp(PyObject *lhs, PyObject *rhs);
+
