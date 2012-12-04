@@ -21,7 +21,9 @@ def _main(mainfile):
 		program.pprint()
 		return
 
-	IRtoC.generateProgram(program, open(cppfile, 'w'))
+	IRtoC.generateProgram(program, open(cppfile, 'w'),
+		'-ints' in command_line_flags
+	)
 
 	if '-ng' not in command_line_flags:
 		CppCompiler.build(cppfile, pname,

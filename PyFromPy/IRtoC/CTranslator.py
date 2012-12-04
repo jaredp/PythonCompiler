@@ -65,11 +65,9 @@ class CTranslator(object):
 	########################################################
 
 	def generateProgram(self, program):
-		self.write('#include <Python.h>'); self.fill()
-		self.write('#include <P3Libs.h>'); self.fill()
-
 		program.initcode.cname = 'run_main_module'
 
+		self.writeHeader()
 		for module in program.modules:
 			for var in module.namespace.values():
 				self.declare(var)
@@ -83,6 +81,10 @@ class CTranslator(object):
 		for function in program.codes:
 			self.generateFunction(function)
 		self.fill()
+
+	def writeHeader(self):
+		self.write('#include <Python.h>'); self.fill()
+		self.write('#include <P3Libs.h>'); self.fill()
 
 	def fdeclaration(self, function):
 		args = ', '.join(map(self.declaration, function.argvars))
