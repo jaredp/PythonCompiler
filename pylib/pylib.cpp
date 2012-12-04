@@ -1,12 +1,23 @@
 #import "P3Libs.h"
 #import <time.h>
 
+#define RAISE throw PythonException()
+#define THROW_ON_NULL(e) ({ typeof(e) a = (e); if (a == NULL) RAISE; a;})
+
+void initFnMechanism();
+
 int main(int argc, char **argv) {
     Py_Initialize();
+    initFnMechanism();
 
-    int start = clock();
-	run_main_module();
-    int end = clock();
+    int start, end;
+   	try {
+	    start = clock();
+		run_main_module();
+	    end = clock();
+	} catch (PythonException &e) {
+		PyErr_Print();
+	}
 
     float seconds = (float)(end - start) / CLOCKS_PER_SEC;
     printf("\n%f seconds\n", seconds);
@@ -15,17 +26,71 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-#define RAISE throw PythonException()
-#define THROW_ON_NULL(e) ({ typeof(e) a = (e); if (a == NULL) RAISE; a;})
+/*********************************************
+ * Function call mechanism
+ *********************************************/
 
+typedef struct {
+	PyObject_HEAD
+	fptr plain_caller;
+	const char *defined_name;
+} P3Function;
 
-PyObject *P3MakeFunction(fptr fn, const char *) {
-	return NULL;
+PyObject *P3Function_Call(P3Function *p3fn, PyObject *posargs, PyObject *kwargs) {
+	//FIXME: hey so those keywords...
+	return p3fn->plain_caller(posargs);
 }
 
-PyObject *P3Call(PyObject *fn, size_t argcount, PyObject **args) {
-	return NULL;
+static PyTypeObject P3Function_Type = {
+    PyObject_HEAD_INIT(NULL)
+    0,                         /*ob_size*/
+    "function",		           /*tp_name*/
+    sizeof(P3Function), 	   /*tp_basicsize*/
+    0,                         /*tp_itemsize*/
+    0,                         /*tp_dealloc*/
+    0,                         /*tp_print*/
+    0,                         /*tp_getattr*/
+    0,                         /*tp_setattr*/
+    0,                         /*tp_compare*/
+    0,                         /*tp_repr*/
+    0,                         /*tp_as_number*/
+    0,                         /*tp_as_sequence*/
+    0,                         /*tp_as_mapping*/
+    0,                         /*tp_hash */
+    P3Function_Call,           /*tp_call*/
+    0,                         /*tp_str*/
+    0,                         /*tp_getattro*/
+    0,                         /*tp_setattro*/
+    0,                         /*tp_as_buffer*/
+    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
+    "compiled function",       /* tp_doc */
+};
+
+
+PyObject *P3MakeFunction(fptr fn, const char *defined_name) {
+    P3Function *self = (P3Function *)P3Function_Type->tp_alloc(P3Function_Type, 0);
+    THROW_ON_NULL(self);
+
+    self->plain_caller = fn;
+    self->defined_name = defined_name;
+
+    return self;
 }
+
+PyObject *P3Call(PyObject *fn, PyObject *args) {
+	PyObject *ret = THROW_ON_NULL(PyObject_Call(fn, args, NULL));
+	Py_DECREF(args);
+	return ret;
+}
+
+void initFnMechanism() {
+	THROW_ON_NULL(PyType_Ready(&P3Function_Type));
+}
+
+
+/*********************************************
+ * Literals
+ *********************************************/
 
 PyObject *P3IntLiteral(long value) {
 	return THROW_ON_NULL(PyInt_FromLong(value));
@@ -89,6 +154,11 @@ PyObject *IsStopIterationSignal(PyObject *nextretval) {
 		Py_RETURN_FALSE;
 	} 
 }
+
+
+/*********************************************
+ * Binary Operations
+ *********************************************/
 
 #define WRAP_BINOP(WRAPPEDNAME, CPYTHONNAME)			\
 PyObject *WRAPPEDNAME(PyObject *lhs, PyObject *rhs) {	\

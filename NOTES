@@ -64,12 +64,10 @@ TODO: IRAtom -> IRVar
 
 TODO: MEMORY MANAGEMENT!!
 
-TODO: Binary Operations?
-
-TODO: For loops should not use exceptions -- use IsStopIterationSignal
-
 TODO: check if things are defined, raise otherwise
 
 TODO: eliminate if (isTruthy(IsStopIterationSignal(obj)))
 
 TODO: Slice, Assign/Delete slice -> stdlib functions
+
+

@@ -209,16 +209,15 @@ class CTranslator(object):
 		or fcall.kwargs != []: 
 			raise NotImplementedError
 
-		if len(fcall.args) == 0:
-			self.write(
-				'P3Call(%s, 0, (PyObject *[]){Py_None})' % 
-				fcall.fn
-			)
 		else:
-			arglist = ', '.join(map(repr, fcall.args))
+			argcount = len(fcall.args)
+			arglist = ' '.join([
+				'PyTuple_SET_ITEM(args, %s, %s);' % a
+				for a in zip(range(argcount), fcall.args)
+			])
 			self.write(
-				'P3Call(%s, %s, (PyObject *[]){%s})' % 
-				(fcall.fn, len(fcall.args), arglist)
+				'P3Call(%s, ({PyObject *args = PyTuple_New(%s);%s args;}))'
+				% (fcall.fn, argcount, arglist)
 			)
 
 	def _MethodCall(self, irexpr):
@@ -301,7 +300,7 @@ class CTranslator(object):
 		pass
 
 	def _MakeFunction(self, op):
-		self.write('P3MakeFunction(%s, "%s")' % (op.code.cname, op.code.pyname))
+		self.write('P3MakeFunction((fptr)%s, "%s")' % (op.code.cname, op.code.pyname))
 
 		#Treat the function as a function pointer, C does not have nested functions unlike Python
 		#PyObject From CPointer irexpr.cname

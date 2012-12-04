@@ -5,10 +5,10 @@ class PythonException {};
 int main(int argc, char **argv);
 PyObject *run_main_module();
 
-typedef PyObject *(fptr)(PyObject *, PyObject *);
+typedef PyObject *(*fptr)(...);
 PyObject *P3MakeFunction(fptr, const char *);
 
-PyObject *P3Call(PyObject *fn, size_t argcount, PyObject **args);
+PyObject *P3Call(PyObject *fn, PyObject *args);
 
 PyObject *P3IntLiteral(long value);
 PyObject *P3FloatLiteral(double value);
