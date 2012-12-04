@@ -1,5 +1,5 @@
-#import "P3Libs.h"
-#import <time.h>
+#include "P3Libs.h"
+#include <time.h>
 
 #define RAISE throw PythonException()
 #define THROW_ON_NULL(e) ({ typeof(e) a = (e); if (a == NULL) RAISE; a;})

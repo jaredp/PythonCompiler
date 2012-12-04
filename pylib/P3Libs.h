@@ -1,4 +1,4 @@
-#import <Python.h>
+#include <Python.h>
 
 class PythonException {};
 
