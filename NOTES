@@ -54,7 +54,7 @@ TODO: Methods are currently undetected.  I believe this should happen in _Call
 
 If there are multiple exception handlers, and one catches, but then raises an exception, are the others considered?
 
-TODO: in function generation, append a return None.  TODO: optimization to remove code in a block after an unconditional return 
+TODO: optimization to remove code in a block after an unconditional return (or raise)
 
 Insert an *only once* mechanism into loading modules, and a way to get+clear it for reloads.  Also, add a call to the module's load on imports.
 

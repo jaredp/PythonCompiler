@@ -52,6 +52,9 @@ class FunctionTranslator:
 			bodyast
 		)
 		
+		with IRBlock(self.function.body):
+			Return(NoneLiteral())
+
 		self.function.docstring = self.docstring
 		self.function.namespace = self.namespace
 		self.function.globals = self.getGlobals()
