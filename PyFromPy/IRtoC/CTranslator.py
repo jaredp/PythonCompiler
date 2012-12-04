@@ -1,5 +1,6 @@
 from IR import *
 import sys
+from utils import escapeString
 #from ctypes import *	-- WHY WAS THIS HERE?
 
 class CTranslator(object):
@@ -65,8 +66,8 @@ class CTranslator(object):
 	########################################################
 
 	def generateProgram(self, program):
-		self.write('#include <Python.h>')
-		self.fill()
+		self.write('#include <Python.h>'); self.fill()
+		self.write('#include <P3Libs.h>'); self.fill()
 
 		for module in program.modules:
 			for var in module.namespace.values():
@@ -78,7 +79,7 @@ class CTranslator(object):
 		self.fill()
 
 	def generateFunction(self, function):
-		args = ', '.join(map(repr, function.argvars))
+		args = ', '.join(map(self.declaration, function.argvars))
 		self.fill('PyObject *%s(%s) ' % (function.cname, args))
 
 		self.enterBlock()
@@ -94,7 +95,10 @@ class CTranslator(object):
 		self.fill()
 
 	def declare(self, varname):
-		self.fill('PyObject *%s = NULL;' % varname)
+		self.fill('%s = NULL;' % self.declaration(varname))
+
+	def declaration(self, varname):
+		return 'PyObject *%s' % varname
 
 	############### C Translating methods ##################
 	# There should be one method per concrete grammar type #
@@ -103,8 +107,17 @@ class CTranslator(object):
 	# currently doesn't.								   #
 	########################################################
 
-	def _IRVar(self, var):
-		self.write(repr(var))
+	def _IRIntLiteral(self, var):
+		self.write("P3IntLiteral(%s)" % var.value)
+
+	def _IRFloatLiteral(self, var):
+		self.write("P3FloatLiteral(%s)" % var.value)
+
+	def _IRStringLiteral(self, var):
+		self.write('P3StringLiteral("%s")' % escapeString(var.value))
+
+	def _NoneLiteral(self, var):
+		self.write('P3None')
 
 	def _If(self, irexpr):
 		#TODO

@@ -1,4 +1,4 @@
-from IR.base import IRNode, IRAtom, IRVar
+from IR.base import IRNode, IRVar
 
 def _subclass(superclass, subclasses):
 	bases = (superclass,)
@@ -12,7 +12,6 @@ def _subclass(superclass, subclasses):
 #############################################################
 
 _subclass(IRNode, {
-	#'IRAtom': [],		# argument to operation, defined in base.py
 	'IROperation': [],	
 	'IRBlockStatement': [],
  })
@@ -20,17 +19,10 @@ _subclass(IRNode, {
 # all code blocks are non-None [IROperation|IRBlockStatement]
 
 _subclass(IRBlockStatement, {
-	'If': ['condition', 'then', 'orelse'],	# condition is an IRAtom
+	'If': ['condition', 'then', 'orelse'],	# condition is an IRVar
 	'Loop': ['body'],
 	'Try': ['body', 'exception', 'handler']
 	# type(exception) = None|BuiltinException|IRVar
-})
-
-_subclass(IRAtom, {
-	'IRStringLiteral': ['value'],
-	'IRIntLiteral': ['value'],
-	'IRFloatLiteral': ['value'],
-	'NoneLiteral': []
 })
 
 _subclass(IROperation, {
@@ -40,7 +32,7 @@ _subclass(IROperation, {
 	
 	'Return': ['value'],
 	'Yield': ['value'],
-	'Raise': ['exception'],			# type(exception) = IRAtom|IRExceptionBuiltin|None
+	'Raise': ['exception'],			# type(exception) = IRVar|IRExceptionBuiltin|None
 	
 	'Break': [],
 	'Continue': [],
@@ -61,7 +53,7 @@ _subclass(IRProducingOp, {
 	'BinOp': ['lhs', 'rhs'],
 	'UnaryOp': ['arg'],
 
-	# type(fn) = IRAtom
+	# type(fn) = IRVar
 	'FCall': ['fn', 'args', 'kwargs', 'starargs', 'keystarargs'],
 	'MethodCall': ['object', 'methname', 'args', 'kwargs', 'starargs', 'keystarargs'],
 
@@ -73,6 +65,11 @@ _subclass(IRProducingOp, {
 	'Subscript': ['obj', 'subscript'],
 	'Slice': ['obj', 'start', 'end', 'step'],
 	
+	'IRStringLiteral': ['value'],
+	'IRIntLiteral': ['value'],
+	'IRFloatLiteral': ['value'],
+	'NoneLiteral': [],
+
 	# context dependant
 	'GetGeneratorSentIn': [],	# target = yield
 	'GetException': [],			# except Exception as target: ...; none if no exception
@@ -84,6 +81,7 @@ _subclass(IRProducingOp, {
 	'MakeFunction': ['code', 'defaults', 'closures'],	# type(code) = IRFunction
 	'MakeClass': ['name', 'superclasses']
 })
+
 '''
 _subclass(BinOp, op, []) for op in [
 	'Add', 'Sub', 'Mult', 'Div', 'FloorDiv', 'Mod', 'Pow',

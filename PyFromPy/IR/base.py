@@ -93,11 +93,7 @@ class IRNode(object):
 
 import utils
 
-class IRAtom(object):
-	def __init__(self, value=None):
-		self.value = value
-
-class IRVar(IRAtom):
+class IRVar(object):
 	# use value if there's some kind of constant value, like a class, function, or potentially literal
 	# if univiedVar is not none, use this as a proxy for it
 	def getUnifiedVar(self):

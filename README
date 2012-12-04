@@ -1,7 +1,6 @@
-The current work is being done in PyFromPy
-
-PyFromPy: Python manipulating CPython parsed AST
-
-PyFromScratch: OCaml parsing and manipulating python
-
-CCPython: C/C++ compiling python, working closely with CPython
+PyFromPy/ is the Python compiler code
+pylib/ is the library that supports generated code
+sandbox/ is a testing ground
+examples/ are examples that should be optimized
+edgecases/ are examples that should compile
+old/ is old code that should be ignored

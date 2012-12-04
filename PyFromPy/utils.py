@@ -22,7 +22,19 @@ def flattenList(l):
 
 def numbered(l):
 	return zip(range(len(l)), l)
-			
+
+def escapeString(s):
+	escape_sequences = [
+		('\\', '\\\\'),
+		('\n', '\\n'),
+		('\t', '\\t')
+	]
+
+	for (c, es) in escape_sequences:
+		s = s.replace(c, es)
+	
+	return s
+
 #http://stackoverflow.com/a/4578605/257261
 def partition(pred, iterable):
     trues = []
