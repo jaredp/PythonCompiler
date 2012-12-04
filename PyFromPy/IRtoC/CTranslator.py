@@ -1,5 +1,4 @@
 from IR import *
-import sys
 from utils import escapeString
 #from ctypes import *	-- WHY WAS THIS HERE?
 
@@ -9,8 +8,8 @@ class CTranslator(object):
 	# infastructure
 	########################################################
 
-	def __init__(self, file = sys.stdout):
-		self.f = file
+	def __init__(self, f):
+		self.f = f
 		self._indent = 0
 
 	def fill(self, text = ""):

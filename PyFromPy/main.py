@@ -4,6 +4,9 @@ import AstTranslator
 import Optimizer
 import IRtoC
 
+from os import system, path
+import platform
+
 command_line_flags = {}
 
 def _main(mainfile):
@@ -12,9 +15,38 @@ def _main(mainfile):
 
 	if '-i' in command_line_flags:
 		program.pprint()
-	else:
-		IRtoC.generateProgram(program)
+		return
 
+	pname = mainfile.rpartition('.')[0]
+	cppfile = pname + '.cpp'
+
+	IRtoC.generateProgram(program, open(cppfile, 'w'))
+
+	gcc(cppfile, pname)
+
+compilerroot = path.dirname(path.dirname(__file__))
+pylibflag = '-lpython2.7'
+if platform.mac_ver()[0] != '':	#is MacOS
+	pyheaders = '/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/'
+else:
+	pyheaders = '/usr/include/python2.7'
+
+def gcc(cppfile, exefile):
+	command = ' '.join([
+		'g++',
+		'-I %s' % pyheaders,
+		'-I %s/pylib' % compilerroot,
+
+		 '%s/pylib/P3Lib.o' % compilerroot,
+		 cppfile,
+
+		 pylibflag,
+
+		 '-o %s' % exefile
+	])
+
+	print command
+	system(command)
 
 # http://code.activestate.com/recipes/52215/
 import sys, traceback
