@@ -5,7 +5,7 @@ class PythonException {};
 int main(int argc, char **argv);
 PyObject *run_main_module();
 
-typedef PyObject *(*fptr)(...);
+typedef PyObject *(*fptr)(PyObject *);
 PyObject *P3MakeFunction(fptr, const char *);
 
 PyObject *P3Call(PyObject *fn, PyObject *args);
@@ -92,4 +92,10 @@ PyObject *IsCmpOp(PyObject *lhs, PyObject *rhs);
 PyObject *IsNotCmpOp(PyObject *lhs, PyObject *rhs);
 PyObject *InCmpOp(PyObject *lhs, PyObject *rhs);
 PyObject *NotInCmpOp(PyObject *lhs, PyObject *rhs);
+
+PyObject *InvertUnaryOp(PyObject *operand);
+PyObject *NotUnaryOp(PyObject *operand);
+PyObject *UAddUnaryOp(PyObject *operand);
+PyObject *USubUnaryOp(PyObject *operand);
+
 

@@ -77,6 +77,7 @@ class CTranslator(object):
 
 		for function in program.codes:
 			self.fill('%s;' % self.fdeclaration(function))
+			self.generateFnPosCaller(function)
 		self.fill()
 
 		for function in program.codes:
@@ -86,6 +87,15 @@ class CTranslator(object):
 	def fdeclaration(self, function):
 		args = ', '.join(map(self.declaration, function.argvars))
 		return 'PyObject *%s(%s)' % (function.cname, args)
+
+	def generateFnPosCaller(self, fn):
+		argcount = range(len(fn.argvars))
+		args = ', '.join(['PyTuple_GET_ITEM(argstuple, %s)' % i for i in argcount])
+		self.fill('''
+PyObject *%s_POSCALLER(PyObject *argstuple) {
+	return %s(%s);
+}
+		''' % (fn.cname, fn.cname, args))
 
 	def generateFunction(self, function):
 		self.fill(self.fdeclaration(function))
@@ -300,7 +310,7 @@ class CTranslator(object):
 		pass
 
 	def _MakeFunction(self, op):
-		self.write('P3MakeFunction((fptr)%s, "%s")' % (op.code.cname, op.code.pyname))
+		self.write('P3MakeFunction((fptr)%s_POSCALLER, "%s")' % (op.code.cname, op.code.pyname))
 
 		#Treat the function as a function pointer, C does not have nested functions unlike Python
 		#PyObject From CPointer irexpr.cname

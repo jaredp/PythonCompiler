@@ -55,7 +55,13 @@ class Operations:
 		raise NotImplementedError
 
 	def _UnaryOp(t, op, operand):
-		raise NotImplementedError
+		ops = {
+			Invert: InvertUnaryOp,
+			Not: stdlib.NotUnaryOp,
+			UAdd: stdlib.UAddUnaryOp,
+			USub: stdlib.USubUnaryOp
+		}
+		return ops[type(op)](t(operand))
 	
 	def _Compare(t, left, ops, comparators):
 		lhs = t(left)

@@ -96,4 +96,11 @@ BinaryOp('IsNotCmpOp')
 BinaryOp('InCmpOp')
 BinaryOp('NotInCmpOp')
 
+class UnaryOp(BuiltinFn):
+	def __init__(self, name):
+		BuiltinFn.__init__(self, name, 'operand')
 
+UnaryOp('InvertUnaryOp')
+UnaryOp('NotUnaryOp')
+UnaryOp('UAddUnaryOp')
+UnaryOp('USubUnaryOp')

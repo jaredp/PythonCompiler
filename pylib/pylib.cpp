@@ -57,7 +57,7 @@ static PyTypeObject P3Function_Type = {
     0,                         /*tp_as_sequence*/
     0,                         /*tp_as_mapping*/
     0,                         /*tp_hash */
-    P3Function_Call,           /*tp_call*/
+    (ternaryfunc)P3Function_Call,           /*tp_call*/
     0,                         /*tp_str*/
     0,                         /*tp_getattro*/
     0,                         /*tp_setattro*/
@@ -68,13 +68,13 @@ static PyTypeObject P3Function_Type = {
 
 
 PyObject *P3MakeFunction(fptr fn, const char *defined_name) {
-    P3Function *self = (P3Function *)P3Function_Type->tp_alloc(P3Function_Type, 0);
+    P3Function *self = (P3Function *)P3Function_Type.tp_alloc(&P3Function_Type, 0);
     THROW_ON_NULL(self);
 
     self->plain_caller = fn;
     self->defined_name = defined_name;
 
-    return self;
+    return (PyObject *)self;
 }
 
 PyObject *P3Call(PyObject *fn, PyObject *args) {
@@ -84,7 +84,9 @@ PyObject *P3Call(PyObject *fn, PyObject *args) {
 }
 
 void initFnMechanism() {
-	THROW_ON_NULL(PyType_Ready(&P3Function_Type));
+	if (PyType_Ready(&P3Function_Type) != 0) {
+		RAISE;
+	}
 }
 
 
@@ -223,3 +225,25 @@ PyObject *IsNotCmpOp(PyObject *lhs, PyObject *rhs) {
 PyObject *InCmpOp(PyObject *lhs, PyObject *rhs) {}
 PyObject *NotInCmpOp(PyObject *lhs, PyObject *rhs) {}
 */
+
+PyObject *NotUnaryOp(PyObject *operand) {
+	switch(PyObject_Not(operand)) {
+		case 1:
+			Py_RETURN_TRUE;
+		case 0:
+			Py_RETURN_FALSE;
+		case -1:
+			RAISE;
+	}
+}
+
+
+#define WRAP_UNARYOP(WRAPPEDNAME, CPYTHONNAME)		\
+PyObject *WRAPPEDNAME(PyObject *operand) {			\
+	return THROW_ON_NULL(CPYTHONNAME(operand));		\
+}
+
+WRAP_UNARYOP(InvertUnaryOp, PyNumber_Invert)
+WRAP_UNARYOP(UAddUnaryOp, PyNumber_Positive)
+WRAP_UNARYOP(USubUnaryOp, PyNumber_Negative)
+

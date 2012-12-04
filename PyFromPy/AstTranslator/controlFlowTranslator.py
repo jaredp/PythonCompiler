@@ -74,7 +74,9 @@ class ControlFlow:
 			loop = Loop([], noemit=True)
 			with IRBlock(loop.body):
 				condition = t(test)
-				If(condition, [Break(noemit=True)], [])
+				If(stdlib.NotUnaryOp(condition), [
+					Break(noemit=True)
+				], [])
 				t.translateStmts(body)
 
 			emit(loop)

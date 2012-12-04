@@ -70,4 +70,4 @@ TODO: eliminate if (isTruthy(IsStopIterationSignal(obj)))
 
 TODO: Slice, Assign/Delete slice -> stdlib functions
 
-
+TODO: Defaults
