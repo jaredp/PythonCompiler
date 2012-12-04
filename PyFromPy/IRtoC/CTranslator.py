@@ -69,6 +69,8 @@ class CTranslator(object):
 		self.write('#include <Python.h>'); self.fill()
 		self.write('#include <P3Libs.h>'); self.fill()
 
+		program.initcode.cname = 'run_main_module'
+
 		for module in program.modules:
 			for var in module.namespace.values():
 				self.declare(var)
@@ -127,7 +129,7 @@ class CTranslator(object):
 
 	def _If(self, irexpr):
 		#TODO
-		self.fill('if (%s)' % irexpr.condition)
+		self.fill('if (isTruthy(%s))' % irexpr.condition)
 		self.genBlock(irexpr.then)
 		if irexpr.orelse:
 			self.write('else')
@@ -167,11 +169,9 @@ class CTranslator(object):
 	
 	def _Break(self, irexpr):
 		self.write("break")
-		self.write(";")
 
 	def _Continue(self, irexpr):
 		self.write("continue")
-		self.write(";")
 
 	def _AssignAttr(self, irexpr):
 		'''
@@ -180,17 +180,6 @@ class CTranslator(object):
 		'''
 		self.write("%s.%s = %s" % (irexpr.obj, irexpr.attr, irexpr.value))
 
-	def _AssignSubscript(self, irexpr):
-		'''
-		This will almost definitely be a stdlib libary call
-		It will likely be removed as an op from the IR
-		'''
-		self.write("%s[%s] = %s" % (irexpr.obj, irexpr.subscript, irexpr.value))
-
-	def _AssignSlice(self, irexpr):
-		#TODO
-		pass
-	
 	def _DeleteVar(self, irexpr):
 		'''
 		Delete is the Python `del`, which unbinds a name.
@@ -206,58 +195,6 @@ class CTranslator(object):
 		anyway.
 		'''
 		self.write('Py_DECREF(%s); %s = NULL' % (irexpr.var, irexpr.var))
-
-	def _DeleteAttr(self, irexpr):
-		'''
-		Like _AssignSubscript, this will go away
-		''' 
-		self.write("delete" + " ")
-		self.dispatch(irexpr.obj)
-		self.write(".")
-		self.dispatch(irexpr.attr)
-		self.write(";")
-
-	def _DeleteSubscript(self, irexpr):
-		#TODO
-		pass
-
-	def _DeleteSlice(self, irexpr):
-		#TODO
-		pass
-
-	#binop = { "Add":"+", "Sub":"-", "Mult":"*", "Div":"/", "Mod":"%",
-	#				"LShift":"<<", "RShift":">>", "BitOr":"|", "BitXor":"^", "BitAnd":"&",
-	#				"FloorDiv":"//", "Pow": "**"}
-
-	def _BinOp(self, irexpr):
-		'''
-		These, especially, will likely become stdlib calls
-		'''
-		self.write("(")
-		self.dispatch(irexpr.lhs)
-		self.write(" " + self.op[irexpr.op.__class__.__name__] + " ")
-		self.dispatch(irexpr.rhs)
-		self.write(")")
-		self.write(";")
-
-	unop = {"Invert":"~", "Not": "!", "UAdd":"+", "USub":"-"}
-	def _UnaryOp(self, irexpr):
-		self.write("(")
-		self.write(self.unop[irexpr.op.__class__.__name__])
-		self.write(" ")
-		# If we're applying unary minus to a number, parenthesize the number.
-		# This is necessary: -2147483648 is different from -(2147483648) on
-		# a 32-bit machine (the first is an int, the second a long), and
-		# -7j is different from -(7j).  (The first has real part 0.0, the second
-		# has real part -0.0.)
-		if isinstance(irexpr.op, ir.USub) and isinstance(ir.operand, ir.Num):
-			self.write("(")
-			self.dispatch(irexpr.arg)
-			self.write(")")
-		else:
-			self.dispatch(irexpr.arg)
-		self.write(")")
-		self.write(";")
 
 	def _FCall(self, fcall):
 		'''

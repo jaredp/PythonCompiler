@@ -25,6 +25,7 @@ BuiltinFn('SetTupleComponent', 'tuple', 'index', 'value')
 
 BuiltinFn('Iter', 'container')
 BuiltinFn('Next', 'iterator')
+BuiltinFn('IsStopIterationSignal', 'nextret')
 
 BuiltinFn('Globals')
 BuiltinFn('Locals')

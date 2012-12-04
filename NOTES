@@ -6,27 +6,27 @@ Actually, no plans to support inheritance
 New-style classes only, (even though it doesn't make a difference)
 __slots__ is just more work
 
-I'm not even sure what Elipsis does, or ExtSlice
+I'm not even sure what Ellipses does, or ExtSlice
 We're just going to do subscript and slices[start:end]
 
 Yo, deal with builtins
 
 I'm considering using captures for closures at the IR level, and just not handling that for now.
 
-We're almost certainly not going to support cyclicic gc at this point
+We're almost certainly not going to support cyclic gc at this point
 
 So apparently globals() and locals() are normal functions, that just so happen to look at their calling frame.  One way or another, I think we'll have to maintain an explicit stack
 If we're lucky, we can use C++'s.  Because of this, I'm making the assumption that globals() or locals() can be called anywhere, anytime.
-Some analysies will simply not run on any program that uses globals or locals anywhere.  The analysis to determine locals/globals usage is just too complicated to be complete, even if it is extremely conservative, and it's super edgecase-ish.
+Some analyses will simply not run on any program that uses globals or locals anywhere.  The analysis to determine locals/globals usage is just too complicated to be complete, even if it is extremely conservative, and it's super edgecase-ish.
 
-Ok so one good thing is that globals/locals are in __builtins__, which aren't actually in globals() by default.  Thus, we can *probably* just track if globals/locals are gotten but not immidiately called.  Even doing so, there are some caveats, mostly from doing something to get all of __builtins__, which can lead to globals/locals escaping to the outside world.
+Ok so one good thing is that globals/locals are in __builtins__, which aren't actually in globals() by default.  Thus, we can *probably* just track if globals/locals are gotten but not immediately called.  Even doing so, there are some caveats, mostly from doing something to get all of __builtins__, which can lead to globals/locals escaping to the outside world.
 
 
 yield in a try-finally.  Do you even know what/how that works?
 
 I don't think we're supporting tracebacks.  Sorry.
 
-With statements aren't implemented, but just because they're Try/Catch, and would take uneccessary work.
+With statements aren't implemented, but just because they're Try/Catch, and would take unnecessary work.
 
 The orelse clauses of for and while statements are currently unimplemented.  A description of how I would handle them is given in controlFlowTranslator.py
 
@@ -46,7 +46,7 @@ Because of def `fn(a, (b, c)):` arguments do not always have to be named.  Lambd
 
 IRVar unification should actually happen in a pass -- I'm concerned about it, even if it should work
 
-Pass to eliminate unneccesary targets
+Pass to eliminate unnecessary targets
 
 Move IR emission to AstTranslator -- this will be a PITA in optimization otherwise, not to mention makes cmdline stuff impossible
 
@@ -66,4 +66,8 @@ TODO: MEMORY MANAGEMENT!!
 
 TODO: Binary Operations?
 
-TODO: 
+TODO: For loops should not use exceptions -- use IsStopIterationSignal
+
+TODO: check if things are defined, raise otherwise
+
+TODO: eliminate if (isTruthy(IsStopIterationSignal(obj)))
