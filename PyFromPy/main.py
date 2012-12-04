@@ -24,7 +24,10 @@ def _main(mainfile):
 	IRtoC.generateProgram(program, open(cppfile, 'w'))
 
 	if '-ng' not in command_line_flags:
-		CppCompiler.build(cppfile, pname, '-gcc' in command_line_flags)
+		CppCompiler.build(cppfile, pname,
+			'-gcc' in command_line_flags,
+			'-W' in command_line_flags
+		)
 
 
 def parseFlags(flags):
