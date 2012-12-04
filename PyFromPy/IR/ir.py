@@ -53,7 +53,7 @@ _subclass(IRProducingOp, {
 	'BinOp': ['lhs', 'rhs'],
 	'UnaryOp': ['arg'],
 
-	# type(fn) = IRVar
+	# type(fn) = IRVar; type(kwargs) = (pyname, IRVar)
 	'FCall': ['fn', 'args', 'kwargs', 'starargs', 'keystarargs'],
 	'MethodCall': ['object', 'methname', 'args', 'kwargs', 'starargs', 'keystarargs'],
 

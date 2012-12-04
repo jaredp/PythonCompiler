@@ -259,7 +259,7 @@ class CTranslator(object):
 		self.write(")")
 		self.write(";")
 
-	def _FCall(self, irexpr):
+	def _FCall(self, fcall):
 		'''
 		The function calling mechanism will be among the most
 		complex, and in some ways are the focus of this 
@@ -268,31 +268,16 @@ class CTranslator(object):
 		is not a straightforward translation.
 		For now, we're going to just call the _ConstCall mechanism.
 		'''
-		return self._ConstCall(irexpr)
+		if fcall.starargs != None \
+		or fcall.keystarargs != None \
+		or fcall.kwargs != []: 
+			raise NotImplementedError
 
-		self.dispatch(irexpr.fn)
-		self.write("(")
-		comma = False
-		for e in irexpr.args:
-			if comma: self.write(", ")
-			else: comma = True
-			self.dispatch(e)
-		for e in irexpr.keywords:
-			if comma: self.write(", ")
-			else: comma = True
-			self.dispatch(e)
-		if irexpr.starargs:
-			if comma: self.write(", ")
-			else: comma = True
-			self.write("*")
-			self.dispatch(irexpr.starargs)
-		if irexpr.kwargs:
-			if comma: self.write(", ")
-			else: comma = True
-			self.write("**")
-			self.dispatch(irexpr.kwargs)
-		
-		self.write(")")
+		arglist = ', '.join([a.name for a in fcall.args])
+		self.write(
+			'P3Call(%s, %s, (PyObject *[]){%s})' % 
+			(fcall.fn, len(fcall.args), arglist)
+		)
 
 	def _MethodCall(self, irexpr):
 		'''
