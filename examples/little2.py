@@ -21,7 +21,7 @@ def fib(n):
 sum = 0
 i = 1
 while i < 35:
-	sum = sum + fib(i)
-	i = i + 1
+	sum += fib(i)
+	i += 1
 
 print sum

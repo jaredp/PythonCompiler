@@ -13,9 +13,9 @@ def perFunction(transform):
 	otherwise, put the function back in, because
 	it was probably modified
 	'''
-	def decorated(program):
+	def decorated(program, *args, **kwargs):
 		program.codes = [
-			transform(fn) or fn
+			transform(fn, *args, **kwargs) or fn
 			for fn in program.codes 
 		]
 	return decorated
@@ -49,3 +49,42 @@ def iterOperationsInProgram(program):
 	for fn in program.codes:
 		for op in iterOperations(fn.body):
 			yield op
+
+def mapTransformToAllOps(transform, op):
+	if isinstance(op, IROperation):
+		return transform(op)
+		
+	elif isinstance(op, If):
+		return If (
+			transform(op.condition),
+			powerReduceCodeBlock(op.then, transform),
+			powerReduceCodeBlock(op.orelse, transform),
+			noemit=True
+		)
+
+	elif isinstance(op, Loop):
+		return Loop (
+			powerReduceCodeBlock(op.body, transform),
+			noemit=True
+		)
+		
+	elif isinstance(op, Try):	#FIXME: I'm not too sure about this one
+		return Try (
+			powerReduceCodeBlock(op.body, transform),
+			powerReduceCodeBlock(op.handler, transform),
+			noemit=True
+		)
+
+def powerReduceCodeBlock(codeblock, transform):
+	return [mapTransformToAllOps(transform, op) for op in codeblock]
+	
+def powerReduction(transform):
+	@perFunction
+	def decorated(function, *args, **kwargs):
+		tf = lambda op: transform(op, *args, **kwargs) or op
+		function.body = powerReduceCodeBlock(function.body, tf)
+	return decorated
+
+
+
+

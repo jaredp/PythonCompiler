@@ -1,9 +1,8 @@
 import getFunctionTemporaries
-#import constFlattener
+import constFlattener
 
 def optimize(program):
-	pass
-#	constFlattener.optimize(program)
+	constFlattener.optimize(program)
 
 def correct(program):
 	getFunctionTemporaries.addAnnotationsTo(program)

@@ -14,16 +14,39 @@ def collectConsts(program):
 		if var in consts:
 			consts[var] = None
 		else:
-			consts[]
+			consts[var] = val
 
-	@iterOperationsInProgram
-	def collect(op):
+	for op in iterOperationsInProgram(program):
 		if isinstance(op, MakeFunction) \
 		and op.defaults == [] \
-		and op.captures == []:
+		and op.closures == []:
+			found(op.target.getUnifiedVar(), op.code)
+			
+		elif isinstance(op, Assign):
+			found(op.target.getUnifiedVar(), op.rhs.getUnifiedVar())
 
+	resolvedconsts = {}
+	for (const, val) in consts.items():
+		while isinstance(val, IRVar):
+			val = consts.get(val, None)
+		if val: 
+			resolvedconsts[const] = val
+		
+	return resolvedconsts
 
-	collect(program)
-
-def inlineConsts(program, consts):
-	pass
+@powerReduction
+def inlineConsts(op, consts):
+	if isinstance(op, FCall):
+		fnvar = op.fn.getUnifiedVar()
+		if fnvar in consts:
+			'''
+			Handling keyword arguments and defaults should happen here, to great effect
+			Actually there's a potential bug here with reloading modules + 'global' defaults
+			Handling variable arguments should also happen.
+			For now, we're just assuming it's only args are positional, and that it
+			has all of its args.  This makes the power reduction less powerful, but
+			it's what we're using it for anyway.
+			'''
+			return ConstCall(consts[fnvar], op.args, target=op.target, noemit=True)
+		
+		

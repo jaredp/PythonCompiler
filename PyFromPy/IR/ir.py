@@ -82,21 +82,3 @@ _subclass(IRProducingOp, {
 	'MakeClass': ['name', 'superclasses']
 })
 
-'''
-_subclass(BinOp, op, []) for op in [
-	'Add', 'Sub', 'Mult', 'Div', 'FloorDiv', 'Mod', 'Pow',
-	'LShift', 'RShift', 'BitOr', 'BitXor', 'BitAnd',
-	
-	'AugAdd', 'AugSub', 'AugMult', 'AugDiv', 'AugFloorDiv', 'AugMod', 'AugPow',
-	'AugLShift', 'AugRShift', 'AugBitOr', 'AugBitXor', 'AugBitAnd',
-
-	'Eq', 'NotEq', 'Lt', 'LtE', 'Gt', 'GtE', 'Is', 'IsNot', 'In', 'NotIn',
-	
-	'And', 'Or'
-]]
-
-_subclass(UnaryOp, op, []) for op in [
-	'Invert', 'Not', 'UAdd', 'USub'
-]]
-'''
-
