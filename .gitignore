@@ -1,9 +1,6 @@
 *.pyc
 *.pyo
 *.pyd
+*.o
 
 .DS_Store
-
-PyFromScratch/build
-PyFromScratch/build/Makefile
-
