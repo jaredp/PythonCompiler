@@ -9,6 +9,7 @@ import operationTranslator
 import unimplementedTranslator
 import varTranslator
 import moduleTranslator
+import docstringTranslator
 
 import IREmitter
 from BaseTranslator import UserProgramError, program

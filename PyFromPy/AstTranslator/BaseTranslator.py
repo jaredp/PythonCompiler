@@ -1,8 +1,6 @@
 from utils import *
 from IR import *
 from IREmitter import *
-import ast
-from utils import matches, ___
 
 class UserProgramError(Exception):
 	pass
@@ -22,12 +20,6 @@ class BaseTranslator(object):
 		self.assignedVars = set()		# {pyname}
 		self.explicitGlobals = set()	# {pyname}
 
-	def pullDocstring(s, astcode):
-		if matches(astcode, [ast.Expr(ast.Str), ___]):
-			s.docstring = astcode.pop(0).value.s
-		else:
-			s.docstring = None
-		
 	########################################
 	# translator nesting infastructure
 	########################################
