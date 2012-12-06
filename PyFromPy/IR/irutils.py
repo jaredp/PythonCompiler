@@ -7,12 +7,6 @@ def newrepr(ty):
 		return fn
 	return setrepr
 
-@newrepr(IRIntLiteral)
-@newrepr(IRFloatLiteral)
-@newrepr(IRStringLiteral)
-def _literalRepr(lit):
-	return str(lit.value)
-
 @newrepr(IRCode)
 def _codeRepr(code):
 	return code.cname

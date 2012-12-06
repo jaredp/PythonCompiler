@@ -1,64 +1,18 @@
-from contextlib import contextmanager
-
-def getAllSlots(cls):
-	slots = []
-	for superclass in cls.__bases__:
-		slots += getAllSlots(superclass)
-	
-	if hasattr(cls, '__slots__'):
-		slots += cls.__slots__
-	
-	return slots
-		
-#############################################################
-# IR Building
-#############################################################
-
-activeBlockStack = []
-def enterBlock(block):	activeBlockStack.append(block)
-def leaveBlock():		activeBlockStack.pop()
-def currentBlock():		return activeBlockStack[-1]
-def emit(op):			
-	assert isinstance(op, IRNode), "tried to emit %s" % s
-	currentBlock().append(op)
-
-@contextmanager
-def IRBlock(block):
-	enterBlock(block)
-	yield
-	leaveBlock()
+from utils import getAllSlots
 
 #############################################################
 # Basic Nodes
 #############################################################
 
 class IRNode(object):
-	def __new__(cls, *args, **kwargs):
-		self = object.__new__(cls)
-		noemit = kwargs.pop('noemit', False)
+	def __init__(self, *args, **kwargs):
 		slots = self.slots()
-
-		if 'target' in slots:
-			# can't use kwargs.pop('target', None) or IRVar b/c target=None
-			if 'target' in kwargs:
-				self.target = kwargs.pop('target')
-				ret = self
-			else:
-				self.target = IRVar()
-				ret = self.target
-
-			slots.remove('target')
-		else:
-			ret = self
-		
 		components = zip(slots, args) + kwargs.items()
+		self.init(components)
+
+	def init(self, components):
 		for (key, val) in components:
 			setattr(self, key, val)
-
-		if noemit == False:
-			emit(self)
-		
-		return ret
 		
 	isa = isinstance
 	
@@ -89,7 +43,10 @@ class IRNode(object):
 			target = ''
 
 		attrs = ', '.join(['%s = %s' % attr for attr in contents])
-		return '%s<%s of %s>' % (target, nodename, attrs)
+		if attrs != '':
+			return '%s<%s of %s>' % (target, nodename, attrs)
+		else:
+			return '%s<%s>' % (target, nodename)
 
 import utils
 

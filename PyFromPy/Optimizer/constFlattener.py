@@ -47,6 +47,6 @@ def inlineConsts(op, consts):
 			has all of its args.  This makes the power reduction less powerful, but
 			it's what we're using it for anyway.
 			'''
-			return ConstCall(consts[fnvar], op.args, target=op.target, noemit=True)
+			return ConstCall(op.target, consts[fnvar], op.args)
 		
 		

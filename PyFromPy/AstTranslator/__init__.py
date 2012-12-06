@@ -1,5 +1,5 @@
 
-from BaseTranslator import UserProgramError, program, buildTranslators
+import BaseTranslator
 import controlFlowTranslator
 import definitionTranslator
 import functionTranslator
@@ -10,9 +10,13 @@ import unimplementedTranslator
 import varTranslator
 import moduleTranslator
 
-buildTranslators()
+import IREmitter
+from BaseTranslator import UserProgramError, program
+
+BaseTranslator.buildTranslators()
 
 def translateFile(fname):
-	main_module = moduleTranslator.getModuleFile(fname, '__main__')
+	with IREmitter.autoemit():
+		main_module = moduleTranslator.getModuleFile(fname, '__main__')
 	program.initcode = main_module.initcode
 	return program

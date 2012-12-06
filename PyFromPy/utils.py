@@ -58,6 +58,20 @@ def uniqueID(suggestion=''):
 	return uid
 
 #############################################################
+# __slots__ handling
+#############################################################
+
+def getAllSlots(cls):
+	slots = []
+	for superclass in cls.__bases__:
+		slots += getAllSlots(superclass)
+	
+	if hasattr(cls, '__slots__'):
+		slots += cls.__slots__
+	
+	return slots
+
+#############################################################
 # Pattern matching
 # doesn't currently support slots
 #############################################################

@@ -1,6 +1,7 @@
 
 from IR import *
 from BaseTranslator import translatorMixin
+from IREmitter import *
 
 @translatorMixin
 class ControlFlow:
@@ -71,7 +72,7 @@ class ControlFlow:
 		
 	def _While(t, test, body, orelse):
 		if orelse == []:
-			loop = Loop([], noemit=True)
+			loop = Loop([])
 			with IRBlock(loop.body):
 				condition = t(test)
 				If(stdlib.NotUnaryOp(condition), [
@@ -79,13 +80,11 @@ class ControlFlow:
 				], [])
 				t.translateStmts(body)
 
-			emit(loop)
-
 		else:
 			raise NotImplementedError
 		
 	def _Pass(s):
-		pass # this is the correct behavior
+		pass # this is the complete behavior
 	
 	def _Break(s):
 		return Break()
