@@ -7,12 +7,23 @@ PyObject *run_main_module();
 
 typedef PyObject *(*fptr)(PyObject *);
 PyObject *P3MakeFunction(fptr, const char *);
-
 PyObject *P3Call(PyObject *fn, PyObject *args);
+
+PyObject *P3MakeClass(const char *name);
+
+PyObject *P3MakeModule(const char *name);
+PyObject *P3ModuleRegisterGlobal(const char *name, PyObject **global);
 
 PyObject *P3IntLiteral(long value);
 PyObject *P3FloatLiteral(double value);
 PyObject *P3StringLiteral(const char *value);
+
+PyObject *P3GetAttr(PyObject *target, const char *attr);
+void P3AssignAttr(PyObject *target, const char *attr, PyObject *value);
+void P3DelAttr(PyObject *target, const char *attr);
+
+
+PyObject *P3GetException();
 
 bool isTruthy(PyObject *object);
 inline bool isTruthy(bool b) { return b; }
@@ -112,6 +123,9 @@ PyObject *USubUnaryOp(PyObject *operand);
 bultin modules
 
 */
+
+PyObject *P3__builtin__len_POSCALLER(PyObject *argstuple);
+PyObject *P3time_clock_POSCALLER(PyObject *argstuple);
 
 PyObject *P3__builtin__len(PyObject *seq);
 PyObject *P3time_clock();

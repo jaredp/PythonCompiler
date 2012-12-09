@@ -64,6 +64,7 @@ class CTranslator(object):
 
 		self.writeHeader()
 		for module in program.modules:
+			self.declare(module.cname)
 			for var in module.namespace.values():
 				self.declare(var)
 		self.fill()
@@ -76,6 +77,13 @@ class CTranslator(object):
 		for function in program.codes:
 			self.generateFunction(function)
 		self.fill()
+
+		'''
+		TODO:
+		main function that calls program.initcode,
+		builds each module with P3MakeModule and P3ModuleRegisterGlobal
+		'''
+
 
 	def writeHeader(self):
 		self.write('#include <Python.h>'); self.fill()
@@ -145,38 +153,26 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		self.fill('while (1)')
 		self.genBlock(irexpr.body)
 
-	def _Try(self, irexpr):
-		#TODO
-		#TOFIX: What's our strategy for exception handling?
-		raise NotImplementedError
-
 	def _Return(self, irexpr):
 		return "return %s" % irexpr.value
 
-	def _Yield(self, irexpr):
-		'''
-		Generators are considerably complicated,
-		and require tricky C generation support.
-		Yield is not a keyword in C/C++
-		'''
-		raise NotImplementedError
-
-	def _Raise(self, irexpr):
-		raise NotImplementedError
-	
 	def _Break(self, irexpr):
 		return "break"
 
 	def _Continue(self, irexpr):
 		return "continue"
 
-	def _AssignAttr(self, irexpr):
-		'''
-		We *may* need to do the whole python attr lookup thing
-		call obj.__setattr__ etc
-		'''
-		raise NotImplementedError
-		return "%s->%s = %s" % (irexpr.obj, irexpr.attr, irexpr.value)
+	def _AssignAttr(self, op):
+		return (
+			'P3AssignAttr(%s, "%s", %s)' % 
+			(op.obj, escapeString(op.attr), op.value)
+		)
+
+	def _Attr(self, op):
+		return 'P3GetAttr(%s, "%s")' % (op.obj, escapeString(op.attr))
+
+	def _DeleteAttr(self, op):
+		return 'P3DelAttr(%s, %s)' % (op.obj, obj.attr)
 
 	def _DeleteVar(self, irexpr):
 		'''
@@ -234,33 +230,48 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 	def _Assign(self, irexpr):
 		return repr(irexpr.rhs)
 
-	def _Attr(self, irexpr):
-		'''
-		same deal as _AssignAttr -- this may need to Python
-		'''
-		raise NotImplementedError
-		return '%s->%s' % (irexpr.obj, irexpr.attr)
-	
-	def _GetGeneratorSentIn(self, irexpr):
-		raise NotImplementedError
-
-	#Get current exception using CPython-C API
-	def _GetException(self, irexpr):
-		raise NotImplementedError
-
 	#Take IRClass/IRFunction/IRModule and turn them into py objects:
-	def _GetModule(self, irexpr):
-		raise NotImplementedError
-
 	def _MakeFunction(self, op):
 		return (
 			'P3MakeFunction((fptr)%s_POSCALLER, "%s")'
 			% (op.code.cname, op.code.pyname)
 		)
 
-	def _MakeClass(self, irexpr):
-		#TODO
-		#TOFIX: Classes in C? Not sure I comprehend this...
-		#Create Py pipe, It should be a CPython/C API thing
-		#For now we'll forget about it
+	def _MakeClass(self, op):
+		'''
+		These properly should be structs defined at top-level
+		Same for modules.
+		This should just get them.
+		For now, we're actually going to make them with the
+		fallback usually reserved for type(,,)
+		'''
+		return 'P3MakeClass(%s)' % op.klass.name
+
+	def _GetModule(self, op):
+		return op.module.cname
+
+	# exception handling
+	def _Try(self, irexpr):
 		raise NotImplementedError
+
+	def _Raise(self, irexpr):
+		raise NotImplementedError
+	
+	def _GetException(self, irexpr):
+		raise 'P3GetException()'
+
+	# generator handling
+	def _Yield(self, irexpr):
+		'''
+		Generators are considerably complicated,
+		and require tricky C generation support.
+		Yield is not a keyword in C/C++
+		'''
+		raise NotImplementedError
+	
+	def _GetGeneratorSentIn(self, irexpr):
+		raise NotImplementedError
+
+
+
+

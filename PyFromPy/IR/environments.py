@@ -67,6 +67,7 @@ class IRClass(object): __slots__ = [
 class IRModule(object): 
 	__slots__ = [
 		'name',
+		'cname',
 		'docstring',
 
 		'namespace',	# {pyname -> IRVar}
@@ -76,6 +77,7 @@ class IRModule(object):
 	def __init__(self, name):
 		self.docstring = None
 		self.name = name
+		self.cname = uniqueID(name+'module')
 
 		self.namespace = {}
 		self.initcode = IRCode('load'+name)

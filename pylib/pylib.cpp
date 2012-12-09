@@ -86,6 +86,37 @@ void initFnMechanism() {
 	}
 }
 
+/*********************************************
+ * Module mechanisms
+ *********************************************/
+
+PyObject *P3MakeModule(const char *name) {
+	Py_RETURN_NONE;
+}
+
+PyObject *P3ModuleRegisterGlobal(const char *name, PyObject **global) {
+	Py_RETURN_NONE;
+}
+
+/*********************************************
+ * Object Oriented mechanisms
+ *********************************************/
+
+PyObject *P3MakeClass(const char *name) {
+	Py_RETURN_NONE;
+}
+
+PyObject *P3GetAttr(PyObject *target, const char *attr) {
+	return THROW_ON_NULL(PyObject_GetAttrString(target, attr));
+}
+
+void P3AssignAttr(PyObject *target, const char *attr, PyObject *value) {
+	THROW_ON_ERRCODE(PyObject_SetAttrString(target, attr, value));
+}
+
+void P3DelAttr(PyObject *target, const char *attr) {
+	THROW_ON_ERRCODE(PyObject_DelAttrString(target, attr));
+}
 
 /*********************************************
  * Literals
@@ -261,6 +292,14 @@ WRAP_UNARYOP(USubUnaryOp, PyNumber_Negative)
 /*
  stdlib
 */
+
+PyObject *P3__builtin__len_POSCALLER(PyObject *argstuple) {
+	return P3__builtin__len(PyTuple_GET_ITEM(argstuple, 0));
+}
+
+PyObject *P3time_clock_POSCALLER(PyObject *argstuple) {
+	return P3time_clock();
+}
 
  PyObject *P3__builtin__len(PyObject *seq) {
  	return P3IntLiteral(THROW_ON_ERRCODE(PySequence_Length(seq)));
