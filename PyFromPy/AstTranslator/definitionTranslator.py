@@ -91,7 +91,11 @@ class Definitions:
 		if bases:
 			raise NotImplementedError
 
-		translator = ClassTranslator(t, name, body)
+		klass = IRClass(name)
+		program.classes.add(klass)
+		kl = MakeClass(klass)
+
+		translator = ClassTranslator(t, klass, body)
 		for gbl in translator.getGlobals():
 			translator.namespace[gbl].isActually(
 				t.getVarNamed(gbl)
@@ -102,8 +106,7 @@ class Definitions:
 				translator.klass.getClassVar(lcl)
 			)
 
-		klass = MakeClass(translator.klass)
-		decorated = t.decorate(klass, decorator_list)
+		decorated = t.decorate(kl, decorator_list)
 		Assign(target=t.getTargetNamed(name), rhs=decorated)
 
 	def _Lambda(s, args, body):
@@ -112,10 +115,10 @@ class Definitions:
 
 @translatorSubclass
 class ClassTranslator:
-	def __init__(self, outer, name, bodyast):
+	def __init__(self, outer, klass, bodyast):
 		BaseTranslator.__init__(self, outer)
 
-		self.klass = IRClass(name)
+		self.klass = klass
 		self.pullDocstring(bodyast)
 		self.translateStmts(bodyast)
 	
