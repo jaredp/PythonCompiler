@@ -42,23 +42,18 @@ class CTranslator(object):
 				self.dispatch(stmt)
 
 	def genOp(self, op):
+		cppcode = self.dispatch(op)
 		if isinstance(op, IRProducingOp) and op.target:
-			self.fill('%s = ' % op.target)
+			lhs = '%s = ' % op.target
 		else:
-			self.fill()
-
-		self.dispatch(op)
-		self.write(';')
+			lhs = ''
+		self.fill('%s%s;' % (lhs, cppcode))
 
 
 	def dispatch(self, tree):
 		"Dispatcher function, dispatching tree type T to method _T."
 		meth = getattr(self, '_'+tree.__class__.__name__)
 		return meth(tree)
-
-	def translateExpr(s, irexpr):
-		meth = getattr(s, '_'+irexpr.__class__.__name__)
-		return meth(irexpr)
 
 	########################################################
 	# high level generators
@@ -127,16 +122,16 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 	########################################################
 
 	def _IRIntLiteral(self, var):
-		self.write("P3IntLiteral(%s)" % var.value)
+		return "P3IntLiteral(%s)" % var.value
 
 	def _IRFloatLiteral(self, var):
-		self.write("P3FloatLiteral(%s)" % var.value)
+		return "P3FloatLiteral(%s)" % var.value
 
 	def _IRStringLiteral(self, var):
-		self.write('P3StringLiteral("%s")' % escapeString(var.value))
+		return 'P3StringLiteral("%s")' % escapeString(var.value)
 
 	def _NoneLiteral(self, var):
-		self.write('Py_None')
+		return 'Py_None'
 
 	def _If(self, irexpr):
 		#TODO
@@ -156,7 +151,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		pass
 
 	def _Return(self, irexpr):
-		self.write("return %s" % irexpr.value)
+		return "return %s" % irexpr.value
 
 	def _Yield(self, irexpr):
 		'''
@@ -167,29 +162,20 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		raise NotImplementedError
 
 	def _Raise(self, irexpr):
-		self.fill('raise ')
-		if irexpr.type:
-			self.dispatch(irexpr.type)
-		if irexpr.inst:
-			self.write(", ")
-			self.dispatch(irexpr.inst)
-		if irexpr.tback:
-			self.write(", ")
-			self.dispatch(irexpr.tback)
-		self.write(";")
+		raise NotImplementedError
 	
 	def _Break(self, irexpr):
-		self.write("break")
+		return "break"
 
 	def _Continue(self, irexpr):
-		self.write("continue")
+		return "continue"
 
 	def _AssignAttr(self, irexpr):
 		'''
 		We *may* need to do the whole python attr lookup thing
 		call obj.__setattr__ etc
 		'''
-		self.write("%s.%s = %s" % (irexpr.obj, irexpr.attr, irexpr.value))
+		return "%s->%s = %s" % (irexpr.obj, irexpr.attr, irexpr.value)
 
 	def _DeleteVar(self, irexpr):
 		'''
@@ -205,7 +191,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		Furthermore, the del statement is pretty rare in python code
 		anyway.
 		'''
-		self.write('Py_DECREF(%s); %s = NULL' % (irexpr.var, irexpr.var))
+		return 'Py_DECREF(%s); %s = NULL' % (irexpr.var, irexpr.var)
 
 	def _FCall(self, fcall):
 		'''
@@ -227,7 +213,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 				'PyTuple_SET_ITEM(args, %s, %s);' % a
 				for a in zip(range(argcount), fcall.args)
 			])
-			self.write(
+			return (
 				'P3Call(%s, ({PyObject *args = PyTuple_New(%s);%s args;}))'
 				% (fcall.fn, argcount, arglist)
 			)
@@ -242,29 +228,16 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 
 	def _ConstCall(self, irexpr):
 		args = ', '.join(map(repr, irexpr.args))
-		self.write('%s(%s)' % (irexpr.fn, args))
+		return '%s(%s)' % (irexpr.fn, args)
 	
 	def _Assign(self, irexpr):
-		self.write(repr(irexpr.rhs))
+		return repr(irexpr.rhs)
 
 	def _Attr(self, irexpr):
 		'''
 		same deal as _AssignAttr -- this may need to Python
 		'''
-		self.write('%s.%s' % (irexpr.obj, irexpr.attr))
-
-	def _Subscript(self, irexpr):
-		'''
-		same deal as _AssignSubscript
-		'''
-		self.write("%s[%s]" % (irexpr.obj, irexpr.subscript))
-
-
-	def _Slice(self, irexpr):
-		'''
-		same deal as _AssignSlice
-		'''
-		raise NotImplementedError
+		return '%s->%s' % (irexpr.obj, irexpr.attr)
 	
 	def _GetGeneratorSentIn(self, irexpr):
 		raise NotImplementedError
@@ -278,7 +251,10 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		raise NotImplementedError
 
 	def _MakeFunction(self, op):
-		self.write('P3MakeFunction((fptr)%s_POSCALLER, "%s")' % (op.code.cname, op.code.pyname))
+		return (
+			'P3MakeFunction((fptr)%s_POSCALLER, "%s")'
+			% (op.code.cname, op.code.pyname)
+		)
 
 	def _MakeClass(self, irexpr):
 		#TODO
