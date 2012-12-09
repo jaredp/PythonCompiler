@@ -13,17 +13,11 @@ int main(int argc, char **argv) {
     Py_Initialize();
     initFnMechanism();
 
-    int start, end;
    	try {
-	    start = clock();
 		run_main_module();
-	    end = clock();
 	} catch (PythonException &e) {
 		PyErr_Print();
 	}
-
-    float seconds = (float)(end - start) / CLOCKS_PER_SEC;
-    printf("\n%f seconds\n", seconds);
 
     Py_Finalize();
 	return 0;
@@ -120,11 +114,12 @@ bool isTruthy(PyObject *object) {
 
 PyObject *MyPrint(PyObject *obj) {
 	PyObject_Print(obj, stdout, Py_PRINT_RAW);
+	fprintf(stdout, " ");
 	Py_RETURN_NONE;
 }
 
 PyObject *PyPrintNl() {
-	printf("\n");
+	fprintf(stdout, "\n");
 	Py_RETURN_NONE;
 }
 
@@ -270,4 +265,9 @@ WRAP_UNARYOP(USubUnaryOp, PyNumber_Negative)
  PyObject *P3__builtin__len(PyObject *seq) {
  	return P3IntLiteral(THROW_ON_ERRCODE(PySequence_Length(seq)));
  }
+
+PyObject *P3time_clock() {
+    return P3FloatLiteral((float)clock() / CLOCKS_PER_SEC);
+}
+
 

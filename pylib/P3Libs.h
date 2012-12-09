@@ -105,3 +105,5 @@ bultin modules
 */
 
 PyObject *P3__builtin__len(PyObject *seq);
+PyObject *P3time_clock();
+

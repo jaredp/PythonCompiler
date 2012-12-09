@@ -1,7 +1,9 @@
 from stdbase import *
 
 def BuiltinFn(fname, *args, **kwargs):
-	globals()[fname] = P3CFunction(fname, *args, **kwargs)
+	fn = P3CFunction(fname, '`unnamed function`', *args, **kwargs)
+	fn.module = '__builtin__'
+	globals()[fname] = fn
 
 BuiltinException('StopIterationException')
 

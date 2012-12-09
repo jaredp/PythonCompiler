@@ -7,6 +7,17 @@ import CppCompiler
 
 command_line_flags = {}
 
+def parseFlags(flags):
+	command_line_flags['files'] = []
+	currentflag = command_line_flags['files']
+
+	for flag in flags:
+		if flag.startswith('-'):
+			command_line_flags[flag] = []
+			currentflag = command_line_flags[flag]
+		else:
+			currentflag.append(flag)
+
 def _main(mainfile):
 	pname = mainfile.rpartition('.')[0]
 	cppfile = pname + '.cpp'
@@ -16,6 +27,9 @@ def _main(mainfile):
 
 	if '-O' in command_line_flags:
 		Optimizer.optimize(program)
+
+	if '-n' in command_line_flags:
+		return
 
 	if '-i' in command_line_flags:
 		program.pprint()
@@ -30,18 +44,6 @@ def _main(mainfile):
 			'-gcc' in command_line_flags,
 			'-W' in command_line_flags
 		)
-
-
-def parseFlags(flags):
-	command_line_flags['files'] = []
-	currentflag = command_line_flags['files']
-
-	for flag in flags:
-		if flag.startswith('-'):
-			command_line_flags[flag] = []
-			currentflag = command_line_flags[flag]
-		else:
-			currentflag.append(flag)
 
 def main():
 	try:

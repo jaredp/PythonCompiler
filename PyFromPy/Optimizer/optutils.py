@@ -22,10 +22,9 @@ def perFunction(transform):
 
 def iterOperations(codeblock):
 	for line in codeblock:
-		if isinstance(line, IROperation):
-			yield line
+		assert isinstance(line, IRNode)
 
-		elif isinstance(line, If):
+		if isinstance(line, If):
 			for op in iterOperations(line.then):
 				yield op
 			for op in iterOperations(line.orelse):
@@ -42,8 +41,7 @@ def iterOperations(codeblock):
 			for op in iterOperations(line.handler):
 				yield op
 
-		else:
-			raise Exception("invalid ir")
+		yield line
 
 def iterOperationsInProgram(program):
 	for fn in program.codes:
@@ -56,7 +54,7 @@ def mapTransformToAllOps(transform, op):
 		
 	elif isinstance(op, If):
 		return transform(If(
-			transform(op.condition),
+			op.condition,
 			powerReduceCodeBlock(op.then, transform),
 			powerReduceCodeBlock(op.orelse, transform)
 		))
@@ -69,6 +67,7 @@ def mapTransformToAllOps(transform, op):
 	elif isinstance(op, Try):	#FIXME: I'm not too sure about this one
 		return transform(Try(
 			powerReduceCodeBlock(op.body, transform),
+			op.exception,
 			powerReduceCodeBlock(op.handler, transform)
 		))
 

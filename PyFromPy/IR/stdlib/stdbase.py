@@ -2,11 +2,10 @@ from IR.ir import *
 from IR.environments import *
 
 class P3CFunction(IRFunction):
-	def __init__(self, fname, pyname='`unnamed function`', *args):
+	def __init__(self, fname, pyname, *args):
 		self.cname = fname
 		self.pyname = pyname
 		self.docstring = None
-		self.module = '__builtin__'
 		self.args = list(args)
 
 	def __call__(this, *args):
@@ -34,12 +33,22 @@ def moduleNamed(mname):
 	modules[mname] = mod
 	
 	def BuiltinFn(pyname, cname, *args, **kwargs):
-		fn = P3CFunction(cname, pyname=pyname, *args, **kwargs)
+		fn = P3CFunction(cname, pyname, *args, **kwargs)
+		fn.module = mname
+
 		fnvar = IRVar(pyname)
 		mod.namespace[pyname] = fnvar
 		mod.initcode.body.append(
 			MakeFunction(fnvar, fn, [], [])
 		)
+
+	def buildModule():
+		# so the C function always returns something
+		n = IRVar('none')
+		mod.initcode.body.extend([
+			NoneLiteral(n),
+			Return(n)
+		])
 	
-	return BuiltinFn
+	return BuiltinFn, buildModule
 
