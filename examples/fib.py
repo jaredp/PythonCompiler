@@ -7,9 +7,8 @@ def fib(n):
 		return 1
 	elif n == 2:
 		return 1
-	else:
-		''' base cases covered '''
-		return fib(n - 1) + fib(n - 2)
+
+	return fib(n - 1) + fib(n - 2)
 
 def m():
 	start = fclock()

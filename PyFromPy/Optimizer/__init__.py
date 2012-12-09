@@ -7,6 +7,8 @@ import variableUnproxyer
 def optimize(program):
 	constFlattener.optimize(program)
 	unusedVariableRemover.clean(program)
+	unreachableCodeRemover.clean(program)
+	
 	getFunctionTemporaries.addAnnotationsTo(program)
 
 def correct(program):
