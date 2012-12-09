@@ -37,17 +37,9 @@ _subclass(IROperation, {
 	'Break': [],
 	'Continue': [],
 
-	'DeleteVar': ['var'],			# IRVar
+	'DeleteVar': ['var'],
 	'AssignAttr': ['obj', 'attr', 'value'],	
 	'DeleteAttr': ['obj', 'attr'],
-
-	# strike these to stdlib
-	'DeleteSubscript': ['obj', 'subscript'],
-	'DeleteSlice': ['obj', 'start', 'end', 'step'],
-	'AssignSubscript': ['obj', 'subscript', 'value'],
-	'AssignSlice': ['obj', 'start', 'end', 'step', 'value'],
-	# start, end, and step can be None
-
 })
 
 _subclass(IRProducingOp, {
@@ -61,10 +53,6 @@ _subclass(IRProducingOp, {
 	'Assign': ['rhs'],
 	'Attr':	['obj', 'attr'],
 	# add mechanism for direct access
-
-	# strike these to stdlib
-	'Subscript': ['obj', 'subscript'],
-	'Slice': ['obj', 'start', 'end', 'step'],
 	
 	'IRStringLiteral': ['value'],
 	'IRIntLiteral': ['value'],

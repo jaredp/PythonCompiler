@@ -55,6 +55,15 @@ PyObject *SetAdd(PyObject *member);
 PyObject *NewDict(PyObject *size);
 PyObject *DictSet(PyObject *dict, PyObject *key, PyObject *value);
 
+PyObject *Subscript(PyObject *obj, PyObject *subscript, PyObject *value);
+PyObject *Slice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step, PyObject *value);
+PyObject *AssignSubscript(PyObject *obj, PyObject *subscript, PyObject *value);
+PyObject *AssignSlice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step, PyObject *value);
+PyObject *DeleteSubscript(PyObject *obj, PyObject *subscript);
+PyObject *DeleteSlice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step);
+
+
+/* operations, binary and unary */
 
 PyObject *AddBinaryOp(PyObject *lhs, PyObject *rhs);
 PyObject *SubBinaryOp(PyObject *lhs, PyObject *rhs);

@@ -39,10 +39,6 @@ I removed the isgenerator flag from IRCode -- Generators should probably be dist
 
 I removed captures from IRCode -- I think they should be handled at a transform level, so the IR doesn't need to 'know' about them
 
-IRVar unification should actually happen in a pass -- I'm concerned about it, even if it should work
-
-Pass to eliminate unnecessary targets
-
 TODO: Methods are currently undetected.  I believe this should happen in _Call
 
 If there are multiple exception handlers, and one catches, but then raises an exception, are the others considered?
@@ -56,8 +52,6 @@ TODO: MEMORY MANAGEMENT!!
 TODO: check if things are defined, raise otherwise
 
 TODO: eliminate if (isTruthy(IsStopIterationSignal(obj)))
-
-TODO: Slice, Assign/Delete slice -> stdlib functions
 
 TODO: Defaults
 

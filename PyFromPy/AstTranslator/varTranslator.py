@@ -19,32 +19,30 @@ class Names:
 		obj = s.translateExpr(value)
 		return Attr(obj, attr)
 
-	def translateSlice(s, slice):
+	def translateSlice(t, slice):
 		if slice.lower:
-			start = s.translateExpr(slice.lower)
+			start = t(slice.lower)
 		else:
-			start = None
+			start = NoneLiteral()
 		if slice.upper:
-			end = s.translateExpr(slice.upper)
+			end = t(slice.upper)
 		else:
-			end = None
+			end = NoneLiteral()
 		if slice.step:
-			step = s.translateExpr(slice.step)
+			step = t(slice.step)
 		else:
-			step = None
+			step = NoneLiteral()
 		return (start, end, step)
 
-	def _Subscript(s, value, slice, ctx):
+	def _Subscript(t, value, slice, ctx):
+		obj = t(value)
+
 		if isinstance(slice, ast.Index):
-			return Subscript(
-				s.translateExpr(value),
-			 	s.translateExpr(slice.value)
-			 )
+			return stdlib.Subscript(obj, t(slice.value))
 
 		elif isinstance(slice, ast.Slice):
-			obj = s.translateExpr(value)
-			start, end, step = s.translateSlice(slice)
-			return Slice(obj, start, end, step)
+			start, end, step = t.translateSlice(slice)
+			return stdlib.Slice(obj, start, end, step)
 
 		else:
 			raise NotImplementedError
@@ -52,23 +50,23 @@ class Names:
 	def _Delete(s, targets):
 		for target in targets:
 			if isinstance(target, ast.Name):
-				var = s.getTargetNamed(target.id)
-				s.emit(DeleteVar(var))
+				var = t.getTargetNamed(target.id)
+				DeleteVar(var)
 				
 			elif isinstance(target, ast.Attribute):
-				irobj = s.translateExpr(target.value)
-				s.emit(DeleteAttr(irobj, target.attr))
+				irobj = t(target.value)
+				DeleteAttr(irobj, target.attr)
 				
 			elif isinstance(target, ast.Subscript):
-				obj = s.translateExpr(target.value)
+				obj = t(target.value)
 
 				if isinstance(target.slice, ast.Index):
-					index = s.translateExpr(target.slice.value)
-					return s.emit(DeleteSubscript(obj, index))
+					index = t(target.slice.value)
+					return stdlib.DeleteSubscript(obj, index)
 				
 				elif isinstance(target.slice, ast.Slice):
-					start, end, step = s.translateSlice(target.slice)
-					return s.emit(DeleteSlice(obj, start, end, step))
+					start, end, step = t.translateSlice(target.slice)
+					return stdlib.DeleteSlice(obj, start, end, step)
 		
 				else:
 					raise NotImplementedError
@@ -85,35 +83,33 @@ class Names:
 	def makeAssignment(s, asttarget, irrhs):
 		s.makeAssignments([asttarget], irrhs)
 
-	def makeAssignments(s, asttargets, irrhs):
+	def makeAssignments(t, asttargets, irrhs):
 		unpackAsgns = []
 	
 		for target in asttargets:
 			if isinstance(target, ast.Name):
 				Assign(
-					target=s.getTargetNamed(target.id), 
+					target=t.getTargetNamed(target.id), 
 					rhs=irrhs
 				)
 				
 			elif isinstance(target, ast.Attribute):
 				#we're not assigning to the target, so we don't add it to locals
-				AssignAttr(
-					s.translateExpr(target.value),
-					target.attr,
-					irrhs
-				)
+				AssignAttr(t(target.value), target.attr, irrhs)
 				
-			elif isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Index):
-				AssignSubscript(
-					s.translateExpr(target.value), 
-					s.translateExpr(target.slice.value), 
+			elif isinstance(target, ast.Subscript) \
+			and isinstance(target.slice, ast.Index):
+				stdlib.AssignSubscript(
+					t(target.value),
+					t(target.slice.value), 
 					irrhs
 				)
 			
-			elif isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Slice):
-				obj = s.translateExpr(target.value)
-				start, end, step = s.translateSlice(target.slice)
-				AssignSlice(obj, start, end, step, irrhs)
+			elif isinstance(target, ast.Subscript) \
+			and isinstance(target.slice, ast.Slice):
+				obj = t(target.value)
+				start, end, step = t.translateSlice(target.slice)
+				stdlib.AssignSlice(obj, start, end, step, irrhs)
 				
 			elif type(target) in [ast.List, ast.Tuple]:
 				unpackAsgns.append(target.elts)
@@ -124,10 +120,10 @@ class Names:
 			iterator = stdlib.Iter(irrhs)
 			
 			if not all([len(upa) == len(unpackAsgns[0]) for upa in unpackAsgns]):
-				s.runtimeError('too many/not enough values to unpack')
+				t.runtimeError('too many/not enough values to unpack')
 			
 			for cAsgn in zip(*unpackAsgns):
 				component = stdlib.Next(iterator)
-				s.makeAssignments(cAsgn, component)
+				t.makeAssignments(cAsgn, component)
 
 
