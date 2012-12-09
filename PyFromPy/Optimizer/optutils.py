@@ -55,33 +55,79 @@ def mapTransformToAllOps(transform, op):
 		return transform(op)
 		
 	elif isinstance(op, If):
-		return If (
+		return transform(If(
 			transform(op.condition),
 			powerReduceCodeBlock(op.then, transform),
 			powerReduceCodeBlock(op.orelse, transform)
-		)
+		))
 
 	elif isinstance(op, Loop):
-		return Loop (
+		return transform(Loop(
 			powerReduceCodeBlock(op.body, transform)
-		)
+		))
 		
 	elif isinstance(op, Try):	#FIXME: I'm not too sure about this one
-		return Try (
+		return transform(Try(
 			powerReduceCodeBlock(op.body, transform),
 			powerReduceCodeBlock(op.handler, transform)
-		)
+		))
 
 def powerReduceCodeBlock(codeblock, transform):
-	return [mapTransformToAllOps(transform, op) for op in codeblock]
-	
-def powerReduction(transform):
+	newblock = []
+	for op in codeblock:
+		newops = mapTransformToAllOps(transform, op)
+		newblock.extend(newops)
+	return newblock
+		
+def operationTransformation(transform):
 	@perFunction
 	def decorated(function, *args, **kwargs):
-		tf = lambda op: transform(op, *args, **kwargs) or op
+		tf = lambda op: transform(op, *args, **kwargs)
 		function.body = powerReduceCodeBlock(function.body, tf)
 	return decorated
 
+def powerReduction(transform):
+	@operationTransformation
+	def decorated(op, *args, **kwargs):
+		return [transform(op, *args, **kwargs) or op]
+	return decorated
 
 
+@powerReduction
+def ignoreWritesTo(op, vars):
+	'''
+	def ignoreWritesTo(program, vars)
+	nulls writes to any var in vars over program
+
+	power reduction over all operations as op,
+	vars is the set of variables to ignore 
+	writes to.
+	'''
+	if isinstance(op, IRProducingOp) and op.target in vars:
+			op.target = None
+
+
+def getTarget(op):
+	if isinstance(op, IRProducingOp):
+		return op.target
+	else:
+		return None
+
+def getOperands(op):
+	if isinstance(op, MakeFunction):
+		for component in op.defaults + op.closures:
+			yield component
+		return
+
+	elif isinstance(op, (FCall, MethodCall, ConstCall)):
+		for arg in op.args:
+			yield arg
+
+		if isinstance(op, (FCall, MethodCall)):
+			for (kw, arg) in op.kwargs:
+				yield arg
+
+	for (slot, value) in op.contents():
+		if slot != 'target' and isinstance(value, IRVar):
+			yield value
 

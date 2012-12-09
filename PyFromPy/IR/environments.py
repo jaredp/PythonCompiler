@@ -2,28 +2,12 @@ from base import IRNode
 from ir import IRVar
 from utils import uniqueID
 
-'''
-class Namespace(object):
-	__slots__ = [
-		'members',			# {pyname -> IRVar}
-		'isExpandable',		# bool
-	]
-	
-	def __init__(self, expandable=False):
-		self.members = {}
-		self.isExpandable = expandable
 
-	def get(ns, pyname):
-		if pyname not in ns.members:
-			ns.members[pyname] = IRVar(pyname)
-		return ns.members[pyname]
+def namespace_getVar(namespace, varname):
+	if varname not in namespace:
+		namespace[varname] = IRVar(varname)
+	return namespace[varname]
 
-	def add(self, members):
-		self.members.update(members)
-
-	def __repr__(self):
-		return repr(self.members)
-'''
 
 class IRFunction(object):
 	'''Abstract base class of IRCode and IRBuiltinFunction (stdlib.py)'''
@@ -100,6 +84,9 @@ class IRModule(object):
 
 		# this both doesn't make sense and doesn't matter
 		self.initcode.module = self 
+
+	def getGlobalVar(self, varname):
+		return namespace_getVar(self.namespace, varname)
 
 
 class Program(object):

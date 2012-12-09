@@ -51,13 +51,11 @@ class IRNode(object):
 import utils
 
 class IRVar(object):
-	# use value if there's some kind of constant value, like a class, function, or potentially literal
-	# if univiedVar is not none, use this as a proxy for it
 	def getUnifiedVar(self):
-		return self.unifiedVar.getUnifiedVar() if self.unifiedVar else self
-
-	__slots__ = ['num', 'name', 'value', 'unifiedVar'] 
-	# and some type stuff...
+		if self.unifiedVar != None:
+			return self.unifiedVar.getUnifiedVar() 
+		else:
+			return self
 	
 	def __init__(self, nameSuggestion=''):
 		self.num = utils.nextUniqueNum
@@ -66,12 +64,22 @@ class IRVar(object):
 		self.value = None
 	
 	def __eq__(lhs, rhs):
+		'''
+		I'd like to remove this, as long as AstTranslator
+		doesn't need it
+		'''
+		if not (isinstance(lhs, IRVar) and isinstance(rhs, IRVar)):
+			return NotImplemented
 		return lhs.getUnifiedVar().num == rhs.getUnifiedVar().num
 	
 	def isActually(lhs, rhs):
-		lhs.unifiedVar = rhs
+		lhs.getUnifiedVar().unifiedVar = rhs
 		#probably something with values/types but that's beyond here
 	
 	def __repr__(self):
+		'''
+		I'd like to remove the indirection, as long as 
+		AstTranslator doesn't need it
+		'''
 		return self.getUnifiedVar().name
 

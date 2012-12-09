@@ -37,22 +37,20 @@ _subclass(IROperation, {
 	'Break': [],
 	'Continue': [],
 
-	'AssignAttr': ['obj', 'attr', 'value'],
+	'DeleteVar': ['var'],			# IRVar
+	'AssignAttr': ['obj', 'attr', 'value'],	
+	'DeleteAttr': ['obj', 'attr'],
+
+	# strike these to stdlib
+	'DeleteSubscript': ['obj', 'subscript'],
+	'DeleteSlice': ['obj', 'start', 'end', 'step'],
 	'AssignSubscript': ['obj', 'subscript', 'value'],
 	'AssignSlice': ['obj', 'start', 'end', 'step', 'value'],
 	# start, end, and step can be None
-	
-	'DeleteVar': ['var'],			# IRVar
-	'DeleteAttr': ['obj', 'attr'],
 
-	'DeleteSubscript': ['obj', 'subscript'],
-	'DeleteSlice': ['obj', 'start', 'end', 'step'],
 })
 
 _subclass(IRProducingOp, {
-	'BinOp': ['lhs', 'rhs'],
-	'UnaryOp': ['arg'],
-
 	# type(fn) = IRVar; type(kwargs) = (pyname, IRVar)
 	'FCall': ['fn', 'args', 'kwargs', 'starargs', 'keystarargs'],
 	'MethodCall': ['object', 'methname', 'args', 'kwargs', 'starargs', 'keystarargs'],
@@ -62,6 +60,9 @@ _subclass(IRProducingOp, {
 	
 	'Assign': ['rhs'],
 	'Attr':	['obj', 'attr'],
+	# add mechanism for direct access
+
+	# strike these to stdlib
 	'Subscript': ['obj', 'subscript'],
 	'Slice': ['obj', 'start', 'end', 'step'],
 	
@@ -70,15 +71,16 @@ _subclass(IRProducingOp, {
 	'IRFloatLiteral': ['value'],
 	'NoneLiteral': [],
 
+	'GetModule': ['module'],	# used for imports; type(module) = IRModule
+	'MakeFunction': ['code', 'defaults', 'closures'],	# type(code) = IRFunction
+	'MakeClass': ['klass'],		# type(klass) = IRClass
+
 	# context dependant
 	'GetGeneratorSentIn': [],	# target = yield
 	'GetException': [],			# except Exception as target: ...; none if no exception
 
+	# these may be removed
 	'GetLocals': [],			# locals(), but locals can be assigned
 	'GetGlobals': [],			# globals(), but globals can be assigned
-	
-	'GetModule': ['module'],	# used for imports; type(module) = IRModule
-	'MakeFunction': ['code', 'defaults', 'closures'],	# type(code) = IRFunction
-	'MakeClass': ['name', 'superclasses']
 })
 
