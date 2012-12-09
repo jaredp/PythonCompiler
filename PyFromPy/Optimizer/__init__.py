@@ -7,7 +7,7 @@ import variableUnproxyer
 def optimize(program):
 	constFlattener.optimize(program)
 	unusedVariableRemover.clean(program)
-
+	correct(program)
 
 def correct(program):
 	variableUnproxyer.clean(program)

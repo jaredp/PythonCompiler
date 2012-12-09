@@ -148,7 +148,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 	def _Try(self, irexpr):
 		#TODO
 		#TOFIX: What's our strategy for exception handling?
-		pass
+		raise NotImplementedError
 
 	def _Return(self, irexpr):
 		return "return %s" % irexpr.value
@@ -175,6 +175,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		We *may* need to do the whole python attr lookup thing
 		call obj.__setattr__ etc
 		'''
+		raise NotImplementedError
 		return "%s->%s = %s" % (irexpr.obj, irexpr.attr, irexpr.value)
 
 	def _DeleteVar(self, irexpr):
@@ -237,6 +238,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		'''
 		same deal as _AssignAttr -- this may need to Python
 		'''
+		raise NotImplementedError
 		return '%s->%s' % (irexpr.obj, irexpr.attr)
 	
 	def _GetGeneratorSentIn(self, irexpr):

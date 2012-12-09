@@ -17,7 +17,6 @@ def getTemporaries(codeblock):
 	temporaries = set()
 
 	for op in iterOperations(codeblock):
-		if isinstance(op, IRProducingOp):
-			temporaries.add(op.target)
+		temporaries.add(getTarget(op))
 
-	return temporaries
+	return temporaries - {None}
