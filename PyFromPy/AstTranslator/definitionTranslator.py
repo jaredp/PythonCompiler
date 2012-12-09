@@ -81,10 +81,42 @@ class Definitions:
 			obj = FCall(decorator, [obj], [], None, None)
 		return obj
 	
-	def _ClassDef(s, name, bases, body, decorator_list):
-		raise NotImplementedError
+	def _ClassDef(t, name, bases, body, decorator_list):
+		'''
+		This only makes sense where the class is declared at
+		a top level.  Even then, reloads might mess it up.
+		90% of the time, it should work 90% of the time.
+		But when it doesn't, currently it's just wrong.
+		'''
+		if bases:
+			raise NotImplementedError
+
+		translator = ClassTranslator(t, name, body)
+		for gbl in translator.getGlobals():
+			translator.namespace[gbl].isActually(
+				t.getVarNamed(gbl)
+			)
+
+		for lcl in translator.getLocals():
+			translator.namespace[lcl].isActually(
+				translator.klass.getClassVar(lcl)
+			)
+
+		klass = MakeClass(translator.klass)
+		decorated = t.decorate(klass, decorator_list)
+		Assign(target=t.getTargetNamed(name), rhs=decorated)
 
 	def _Lambda(s, args, body):
 		raise NotImplementedError
 	
+
+@translatorSubclass
+class ClassTranslator:
+	def __init__(self, outer, name, bodyast):
+		BaseTranslator.__init__(self, outer)
+
+		self.klass = IRClass(name)
+		self.pullDocstring(bodyast)
+		self.translateStmts(bodyast)
 	
+		self.klass.docstring = self.docstring

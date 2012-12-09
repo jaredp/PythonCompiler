@@ -57,13 +57,23 @@ class IRCode(IRFunction):
 		self.kwargs = None
 		
 
-class IRClass(object): __slots__ = [
-	'name',			#C name
-	'definedname',	#name defined in Python
-	'namespace' 	
-	#types
-]
-	
+class IRClass(object): 
+	__slots__ = [
+		'name',			#name defined in Python
+		'cname',		#C name
+		'docstring',
+		'namespace' 	
+		#types
+	]
+
+	def __init__(self, name):
+		self.name = name
+		self.cname = uniqueID(name)
+		self.namespace = {}
+
+	def getClassVar(self, varname):
+			return namespace_getVar(self.namespace, varname)
+
 class IRModule(object): 
 	__slots__ = [
 		'name',
