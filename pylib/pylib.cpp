@@ -2,7 +2,10 @@
 #include <time.h>
 
 #define RAISE throw PythonException()
-#define THROW_ON_NULL(e) ({ typeof(e) a = (e); if (a == NULL) RAISE; a;})
+#define THROW_ON_NULL(e) 					\
+({ typeof(e) a = (e); if (a == NULL) RAISE; a;})
+#define THROW_ON_ERRCODE(e)					\
+({ typeof(e) a = (e); if (a == -1) RAISE; a;})
 
 void initFnMechanism();
 
@@ -94,7 +97,7 @@ void initFnMechanism() {
  * Literals
  *********************************************/
 
-PyObject *P3IntLiteral(long value) {
+inline PyObject *P3IntLiteral(long value) {
 	return THROW_ON_NULL(PyInt_FromLong(value));
 }
 
@@ -145,8 +148,12 @@ PyObject *Iter(PyObject *container) {
 PyObject *Next(PyObject *iterator) {
 	PyObject *next = PyIter_Next(iterator);
 	if (next) return next;
-	if (!PyErr_Occurred()) return NULL;	//THIS IS FRACKING DANGEROUS!!
-	throw PythonException();
+	if (!PyErr_Occurred()) return NULL;	
+	//THIS IS FRACKING DANGEROUS!!
+	//The idea is that whatever is returned will be checked by
+	//IsStopIterationSignal
+
+	RAISE;
 }
 
 PyObject *IsStopIterationSignal(PyObject *nextretval) {
@@ -155,6 +162,15 @@ PyObject *IsStopIterationSignal(PyObject *nextretval) {
 	} else {
 		Py_RETURN_FALSE;
 	} 
+}
+
+
+PyObject *NewList() {
+	return THROW_ON_NULL(PyList_New(0));
+}
+
+PyObject *ListAppend(PyObject *list, PyObject *member) {
+	THROW_ON_ERRCODE(PyList_Append(list, member));
 }
 
 
@@ -246,4 +262,12 @@ PyObject *WRAPPEDNAME(PyObject *operand) {			\
 WRAP_UNARYOP(InvertUnaryOp, PyNumber_Invert)
 WRAP_UNARYOP(UAddUnaryOp, PyNumber_Positive)
 WRAP_UNARYOP(USubUnaryOp, PyNumber_Negative)
+
+/*
+ stdlib
+*/
+
+ PyObject *P3__builtin__len(PyObject *seq) {
+ 	return P3IntLiteral(THROW_ON_ERRCODE(PySequence_Length(seq)));
+ }
 

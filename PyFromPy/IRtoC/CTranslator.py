@@ -238,29 +238,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		class attribute lookup.  It's entirely possible we wont
 		get to classes, and not get to this.
 		'''
-		self.dispatch(irexpr.fn)
-		self.write("(")
-		comma = False
-		for e in irexpr.args:
-			if comma: self.write(", ")
-			else: comma = True
-			self.dispatch(e)
-		for e in irexpr.keywords:
-			if comma: self.write(", ")
-			else: comma = True
-			self.dispatch(e)
-		if irexpr.starargs:
-			if comma: self.write(", ")
-			else: comma = True
-			self.write("*")
-			self.dispatch(irexpr.starargs)
-		if irexpr.kwargs:
-			if comma: self.write(", ")
-			else: comma = True
-			self.write("**")
-			self.dispatch(irexpr.kwargs)
-		self.write(")")
-		self.write(";")
+		raise NotImplementedError
 
 	def _ConstCall(self, irexpr):
 		args = ', '.join(map(repr, irexpr.args))
@@ -286,53 +264,25 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		'''
 		same deal as _AssignSlice
 		'''
-
-		if irexpr.lower:
-			self.dispatch(irexpr.start)
-		self.write(":")
-		if irexpr.end:
-			self.dispatch(irexpr.end)
-		if irexpr.step:
-			self.write(":")
-			self.dispatch(irexpr.step)
-		self.write(";")
+		raise NotImplementedError
 	
 	def _GetGeneratorSentIn(self, irexpr):
-		#TODO
-		pass
+		raise NotImplementedError
 
 	#Get current exception using CPython-C API
 	def _GetException(self, irexpr):
-		#TODO
-		pass
+		raise NotImplementedError
 
 	#Take IRClass/IRFunction/IRModule and turn them into py objects:
 	def _GetModule(self, irexpr):
-		#TODO
-		pass
+		raise NotImplementedError
 
 	def _MakeFunction(self, op):
 		self.write('P3MakeFunction((fptr)%s_POSCALLER, "%s")' % (op.code.cname, op.code.pyname))
-
-		#Treat the function as a function pointer, C does not have nested functions unlike Python
-		#PyObject From CPointer irexpr.cname
-		#TOFIX: Doublecheck, I've generated the C function pointer, 
-		
-		#self.write("PyCObject_FromVoidPtr(%s, NULL)" %(irexpr.cname) )
-		#self.write(";")
-
-		# we should probably write a C function that does all of this...
-		'''
-		self.write("PyObject* (*%s)(PyObject*,PyObject*) = %s;" %(irexpr.pyname, irexpr.cname) )
-		self.write("PyMethodDef %smethd = {\"function\",%s,METH_VARARGS,\"A new function\"};" %(irexpr.pyname, irexpr.pyname) )
-		self.write("PyObject* %sname = PyString_FromString(%smethd.ml_name);" %(irexpr.cname, irexpr.pyname) )
-		self.write("PyObject* pyfoo = PyCFunction_NewEx(&%smethd,NULL,name);" %(irexpr.pyname) )
-		self.write("Py_DECREF(%sname);" % (irexpr.cname) )
-		'''
 
 	def _MakeClass(self, irexpr):
 		#TODO
 		#TOFIX: Classes in C? Not sure I comprehend this...
 		#Create Py pipe, It should be a CPython/C API thing
 		#For now we'll forget about it
-		pass
+		raise NotImplementedError

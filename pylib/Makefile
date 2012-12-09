@@ -6,3 +6,8 @@ P3Lib.o : *.h *.cpp
 	g++ -c -I ${PYLIB} *.cpp -o P3Lib.o
 
 
+.PHONY : clean
+clean : 
+	rm -f P3Lib.o
+
+

@@ -18,6 +18,10 @@ BaseTranslator.buildTranslators()
 
 def translateFile(fname):
 	with IREmitter.autoemit():
-		main_module = moduleTranslator.getModuleFile(fname, '__main__')
+		main_module = moduleTranslator.getModuleFile(
+			'__main__', 
+			open(fname), 
+			fname
+		)
 	program.initcode = main_module.initcode
 	return program

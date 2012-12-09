@@ -8,6 +8,13 @@ for i in (a, b):
 	print i
 '''
 
+def range(i, n):
+	r = []
+	while i < n:
+		r += [i]
+		i += 1
+	return r
+
 def fib(n):
 	'''fib computes the nth number of the fibonacci sequence'''
 	if n == 1:
@@ -19,9 +26,7 @@ def fib(n):
 		return fib(n - 1) + fib(n - 2)
 
 sum = 0
-i = 1
-while i < 35:
+for i in range(1, 35):
 	sum += fib(i)
-	i += 1
 
 print sum

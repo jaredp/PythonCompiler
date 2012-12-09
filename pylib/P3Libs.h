@@ -46,8 +46,8 @@ PyObject *IsStopIterationSignal(PyObject *nextretval);
 PyObject *Globals();
 PyObject *Locals();
 
-PyObject *NewList(PyObject *size);
-PyObject *ListAppend(PyObject *member);
+PyObject *NewList();
+PyObject *ListAppend(PyObject *list, PyObject *member);
 
 PyObject *NewSet(PyObject *size);
 PyObject *SetAdd(PyObject *member);
@@ -98,4 +98,10 @@ PyObject *NotUnaryOp(PyObject *operand);
 PyObject *UAddUnaryOp(PyObject *operand);
 PyObject *USubUnaryOp(PyObject *operand);
 
+/*
 
+bultin modules
+
+*/
+
+PyObject *P3__builtin__len(PyObject *seq);

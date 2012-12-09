@@ -60,3 +60,5 @@ TODO: eliminate if (isTruthy(IsStopIterationSignal(obj)))
 TODO: Slice, Assign/Delete slice -> stdlib functions
 
 TODO: Defaults
+
+__builtin__ as part of the variable lookup path makes life very difficult.  It's just not handled yet.

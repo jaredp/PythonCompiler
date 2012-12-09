@@ -1,20 +1,9 @@
-from IR.ir import *
-from IR.environments import *
+from stdbase import *
 
-class BuiltinFn(IRFunction):
-	def __init__(self, fname, *args):
-		self.cname = fname
-		self.pyname = '`unnamed function`'
-		self.docstring = None
-		self.module = '__builtin__'
-		self.args = list(args)
-		globals()[fname] = self
+def BuiltinFn(fname, *args, **kwargs):
+	globals()[fname] = P3CFunction(fname, *args, **kwargs)
 
-	def __call__(this, *args):
-		return ConstCall(this, list(args))
-
-	def __repr__(this):
-		return this.cname
+BuiltinException('StopIterationException')
 
 BuiltinFn('PyPrint', 'dest', 'obj')
 BuiltinFn('MyPrint', 'obj')
@@ -32,7 +21,7 @@ BuiltinFn('Locals')
 
 BuiltinFn('Repr', 'obj')
 
-BuiltinFn('NewList', 'size')
+BuiltinFn('NewList')
 BuiltinFn('ListAppend', 'member')
 
 BuiltinFn('NewSet', 'size')
@@ -41,23 +30,8 @@ BuiltinFn('SetAdd', 'member')
 BuiltinFn('NewDict', 'size')
 BuiltinFn('DictSet', 'dict', 'key', 'value')
 
-class BuiltinException(object):
-	'''
-	figuring this out would mean figuring out types in the IR
-	We're not there yet
-	'''
-	def __init__(self, ename):
-		self.ename = ename
-		globals()[ename] = self
-
-	def __repr__(self):
-		return self.ename
-
-BuiltinException('StopIterationException')
-
-class BinaryOp(BuiltinFn):
-	def __init__(self, name):
-		BuiltinFn.__init__(self, name, 'lhs', 'rhs')
+def BinaryOp(fname):
+	BuiltinFn(fname, 'lhs', 'rhs')
 
 BinaryOp('AddBinaryOp')
 BinaryOp('SubBinaryOp')
@@ -96,9 +70,8 @@ BinaryOp('IsNotCmpOp')
 BinaryOp('InCmpOp')
 BinaryOp('NotInCmpOp')
 
-class UnaryOp(BuiltinFn):
-	def __init__(self, name):
-		BuiltinFn.__init__(self, name, 'operand')
+def UnaryOp(fname):
+	BuiltinFn(fname, 'operand')
 
 UnaryOp('InvertUnaryOp')
 UnaryOp('NotUnaryOp')

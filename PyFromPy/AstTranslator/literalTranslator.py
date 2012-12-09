@@ -15,7 +15,7 @@ class Literals:
 		return IRStringLiteral(s)
 		
 	def _List(t, elts, ctx):
-		s = stdlib.NewList(IRIntLiteral(len(elts)))
+		s = stdlib.NewList()
 		for elt in elts:
 			stdlib.ListAppend(s, t(elt))
 		return s

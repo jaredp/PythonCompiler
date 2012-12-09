@@ -58,21 +58,18 @@ def mapTransformToAllOps(transform, op):
 		return If (
 			transform(op.condition),
 			powerReduceCodeBlock(op.then, transform),
-			powerReduceCodeBlock(op.orelse, transform),
-			noemit=True
+			powerReduceCodeBlock(op.orelse, transform)
 		)
 
 	elif isinstance(op, Loop):
 		return Loop (
-			powerReduceCodeBlock(op.body, transform),
-			noemit=True
+			powerReduceCodeBlock(op.body, transform)
 		)
 		
 	elif isinstance(op, Try):	#FIXME: I'm not too sure about this one
 		return Try (
 			powerReduceCodeBlock(op.body, transform),
-			powerReduceCodeBlock(op.handler, transform),
-			noemit=True
+			powerReduceCodeBlock(op.handler, transform)
 		)
 
 def powerReduceCodeBlock(codeblock, transform):

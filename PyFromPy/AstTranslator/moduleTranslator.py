@@ -8,7 +8,7 @@ translatedModules = {}
 
 @translatorSubclass
 class ModuleTranslator:
-	def __init__(self, outer, modulename, fname):
+	def __init__(self, outer, modulename, fname, astmodule):
 		BaseTranslator.__init__(self, outer)
 
 		self.module = IRModule(modulename)
@@ -17,12 +17,10 @@ class ModuleTranslator:
 		program.modules.add(self.module)
 		program.codes.add(self.module.initcode)
 		
-		astcode = parseFile(fname).body
-
-		self.pullDocstring(astcode)
+		self.pullDocstring(astmodule.body)
 		self.buildBlock(
 			self.module.initcode.body, 
-			astcode
+			astmodule.body
 		)
 
 		with IRBlock(self.module.initcode.body):
@@ -41,31 +39,41 @@ class ModuleTranslator:
 	def currentModule(self):
 		return self.module
 
-def parseFile(fname):
-	f = open(fname)
+def getModuleFile(mname, f, fname, outer = None):
 	pcode = f.read()
 	f.close()
-	return ast.parse(pcode, fname)
+	astcode = ast.parse(pcode, fname)
 
-def getModuleFile(fname, mname, outer = None):
 	if fname not in translatedModules:
-		ModuleTranslator(outer, mname, fname)
+		#ModuleTranslator puts itself into translatedModules
+		ModuleTranslator(outer, mname, fname, astcode)
 	return translatedModules[fname]
+
+def getModule(mname, outer):
+	try:
+		fname = mname.replace('.', '/') + '.py'
+		f = open(fname)
+		return getModuleFile(mname, f, fname, outer)
+	except IOError:
+		if mname in stdlib.modules:
+			m = stdlib.modules[mname]
+			program.modules.add(m)
+			program.codes.add(m.initcode)
+			return m
+		else:
+			raise
 
 
 @translatorMixin
 class ImportTranslator(object):
 	def getModule(self, mname):
-		fname = lookupModule(mname)
-		return getModuleFile(fname, mname)
-		
-	# General FIXME/TODO/UNHANDLED: packages are compeletely unsupported
-	def lookupModule(mname):
 		try:
-			return mname.replace('.', '/') + '.py'
-		except:
-			s.error("no module named %s" % mname)		
-			
+			module = getModule(mname, self)
+			ConstCall(module.initcode, [])
+			return module
+		except IOError:
+			self.error("no module named %s" % mname)		
+
 	####################################################
 	# Importers
 	####################################################
@@ -88,6 +96,7 @@ class ImportTranslator(object):
 			import foo as $0
 			globals().append($0.__dict___)
 			'''
+			print names
 			raise NotImplementedError
 
 		for alias in names:
