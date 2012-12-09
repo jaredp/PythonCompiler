@@ -1,47 +1,57 @@
 
 Packages are unimplemented -- lookups are complicated, but route
-No plans to support multiple inheritance
-No plans to support metaclasses
-Actually, no plans to support inheritance
-New-style classes only, (even though it doesn't make a difference)
-__slots__ is just more work
 
-I'm not even sure what Ellipses does, or ExtSlice
-We're just going to do subscript and slices[start:end]
+I'm not even sure what Ellipses does, or ExtSlice.  We're just going to do subscript and slices[start:end]
+
+Not going to support cyclic gc at this point
 
 Yo, deal with builtins
 
-I'm considering using captures for closures at the IR level, and just not handling that for now.
-
-We're almost certainly not going to support cyclic gc at this point
-
-So apparently globals() and locals() are normal functions, that just so happen to look at their calling frame.  One way or another, I think we'll have to maintain an explicit stack
-If we're lucky, we can use C++'s.  Because of this, I'm making the assumption that globals() or locals() can be called anywhere, anytime.
-Some analyses will simply not run on any program that uses globals or locals anywhere.  The analysis to determine locals/globals usage is just too complicated to be complete, even if it is extremely conservative, and it's super edgecase-ish.
-
-Ok so one good thing is that globals/locals are in __builtins__, which aren't actually in globals() by default.  Thus, we can *probably* just track if globals/locals are gotten but not immediately called.  Even doing so, there are some caveats, mostly from doing something to get all of __builtins__, which can lead to globals/locals escaping to the outside world.
-
-
-yield in a try-finally.  Do you even know what/how that works?
-
-I don't think we're supporting tracebacks.  Sorry.
-
-With statements aren't implemented, but just because they're Try/Catch, and would take unnecessary work.
+globals/locals are in __builtin__, which aren't actually in globals() by default.  Thus, we can *probably* just track if globals/locals are gotten but not immediately called.  Even doing so, there are some caveats, mostly from doing something to get all of __builtins__, which can lead to globals/locals escaping to the outside world.
 
 The orelse clauses of for and while statements are currently unimplemented.  A description of how I would handle them is given in controlFlowTranslator.py
 
-BIG ONE:
-a return in a try happens *AFTER* the finally clause.  I don't think C++ does this, and this is actually not that trivial to translate to the target language.  The IR assumes C semantics.  I think I'll rely on an IR transform to make this behave according to Python semantics.
-
 Function's captures aren't identified until after IR generation.  This is done because captures work on >1st degree scopes, and you don't know at the end of the scope all of the locals of the enclosing scopes.  Instead, we're going to identify captures at the end of top-level scopes generation, and we'll do this after IR generation as a correctness pass.
 
+
+Generators
+-------------------------
 I removed the isgenerator flag from IRCode -- Generators should probably be distinct from functions some way or another
 
-I removed captures from IRCode -- I think they should be handled at a transform level, so the IR doesn't need to 'know' about them
+Generators are currently unhandled in C generation.  We will use the `switch` trick.
+
+
+Exceptions
+-------------------------
+If there are multiple exception handlers, and one catches, but then raises an exception, are the others considered?  NO
+
+a return in a try happens *AFTER* the finally clause.  I don't think C++ does this, and this is actually not that trivial to translate to the target language.  The IR assumes C semantics.  I think I'll rely on an IR transform to make this behave according to Python semantics.
+
+Generators in a try-finally get invoked on destruction so the finally occurs
+
+With statements aren't implemented, but just because they're Try/Catch, and would take unnecessary work.
+
+
+I don't think we're supporting tracebacks, unless there's support at a C / assembly level.
+
+
+Objects
+-------------------------
+No plans to support multiple inheritance
+
+No plans to support metaclasses
+
+Actually, no plans to support inheritance
+
+New-style classes only, (even though it doesn't make a difference)
+
+__slots__ is just more work
+
+
+TODOs
+-------------------------
 
 TODO: Methods are currently undetected.  I believe this should happen in _Call
-
-If there are multiple exception handlers, and one catches, but then raises an exception, are the others considered?
 
 TODO: optimization to remove code in a block after an unconditional return (or raise)
 
@@ -55,6 +65,10 @@ TODO: eliminate if (isTruthy(IsStopIterationSignal(obj)))
 
 TODO: Defaults
 
+TODO: Captures
+
 __builtin__ as part of the variable lookup path makes life very difficult.  It's just not handled yet.
 
 TODO: intern strings
+
+
