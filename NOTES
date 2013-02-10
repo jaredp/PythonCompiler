@@ -37,7 +37,9 @@ I don't think we're supporting tracebacks, unless there's support at a C / assem
 
 Objects
 -------------------------
-In C, classes should be implemented as structs, with slots for common member.  Lookups should happen in a dicitonary which doesn't always retain the values -- they may be offsets into an object.  This can be accomplished with tagged pointers (i.e. storing the type in the bits of memory that must be 0 in pointers for alignement).
+In C, classes should be implemented as structs, with slots for common member.  __dict__ shouldn't always retain the values -- they may be offsets into an instance.  This can be accomplished with tagged pointers (i.e. storing the type in the bits of memory that must be 0 in pointers for alignement).
+
+Lookups, however, shouldn't use strings; they should use id numbers.  The id numbers should start at 0 and be consecutive, and ideally the id numbers for identifiers that represent members of an object should be consecutive.  This way, lookups can be done with a switch statement, and it can be potentially very dense.  
 
 
 class definitions have their own scope -- the classes!
