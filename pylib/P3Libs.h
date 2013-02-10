@@ -1,18 +1,32 @@
 #include <Python.h>
 
-class PythonException {};
+#include "modules.h"
+
+/* start up */
 
 int main(int argc, char **argv);
 PyObject *run_main_module();
 
+
+/* exceptions */
+
+class PythonException {};
+void raise(...);
+#define RAISE throw PythonException()
+#define THROW_ON_NULL(e) 					\
+({ typeof(e) a = (e); if (a == NULL) RAISE; a;})
+#define THROW_ON_ERRCODE(e)					\
+({ typeof(e) a = (e); if (a == -1) RAISE; a;})
+
+
+
+void initFnMechanism();
 typedef PyObject *(*fptr)(PyObject *);
 PyObject *P3MakeFunction(fptr, const char *);
 PyObject *P3Call(PyObject *fn, PyObject *args);
 
 PyObject *P3MakeClass(const char *name);
-
-PyObject *P3MakeModule(const char *name);
-PyObject *P3ModuleRegisterGlobal(const char *name, PyObject **global);
+PyObject *P3GetType(PyObject *o);
 
 PyObject *P3IntLiteral(long value);
 PyObject *P3FloatLiteral(double value);
@@ -129,4 +143,7 @@ PyObject *P3time_clock_POSCALLER(PyObject *argstuple);
 
 PyObject *P3__builtin__len(PyObject *seq);
 PyObject *P3time_clock();
+
+PyObject *P3__builtin__int(PyObject *value);
+PyObject *P3__builtin__raw_input(PyObject *prompt);
 

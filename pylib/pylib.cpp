@@ -1,17 +1,12 @@
 #include "P3Libs.h"
 #include <time.h>
 
-#define RAISE throw PythonException()
-#define THROW_ON_NULL(e) 					\
-({ typeof(e) a = (e); if (a == NULL) RAISE; a;})
-#define THROW_ON_ERRCODE(e)					\
-({ typeof(e) a = (e); if (a == -1) RAISE; a;})
-
-void initFnMechanism();
-
 int main(int argc, char **argv) {
     Py_Initialize();
+	PySys_SetArgv(argc, argv);
+
     initFnMechanism();
+    initModuleMechanism();
 
    	try {
 		run_main_module();
@@ -23,56 +18,13 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
+void raise(...) {
+	RAISE;
+}
+
 /*********************************************
  * Function call mechanism
  *********************************************/
-
-typedef struct {
-	PyObject_HEAD
-	fptr plain_caller;
-	const char *defined_name;
-} P3Function;
-
-PyObject *P3Function_Call(P3Function *p3fn, PyObject *posargs, PyObject *kwargs) {
-	//FIXME: hey so those keywords...
-	return p3fn->plain_caller(posargs);
-}
-
-static PyTypeObject P3Function_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
-    "function",		           /*tp_name*/
-    sizeof(P3Function), 	   /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    0,                         /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    (ternaryfunc)P3Function_Call,           /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
-    "compiled function",       /* tp_doc */
-};
-
-
-PyObject *P3MakeFunction(fptr fn, const char *defined_name) {
-    P3Function *self = (P3Function *)P3Function_Type.tp_alloc(&P3Function_Type, 0);
-    THROW_ON_NULL(self);
-
-    self->plain_caller = fn;
-    self->defined_name = defined_name;
-
-    return (PyObject *)self;
-}
 
 PyObject *P3Call(PyObject *fn, PyObject *args) {
 	PyObject *ret = THROW_ON_NULL(PyObject_Call(fn, args, NULL));
@@ -80,31 +32,9 @@ PyObject *P3Call(PyObject *fn, PyObject *args) {
 	return ret;
 }
 
-void initFnMechanism() {
-	if (PyType_Ready(&P3Function_Type) != 0) {
-		RAISE;
-	}
-}
-
-/*********************************************
- * Module mechanisms
- *********************************************/
-
-PyObject *P3MakeModule(const char *name) {
-	Py_RETURN_NONE;
-}
-
-PyObject *P3ModuleRegisterGlobal(const char *name, PyObject **global) {
-	Py_RETURN_NONE;
-}
-
 /*********************************************
  * Object Oriented mechanisms
  *********************************************/
-
-PyObject *P3MakeClass(const char *name) {
-	Py_RETURN_NONE;
-}
 
 PyObject *P3GetAttr(PyObject *target, const char *attr) {
 	return THROW_ON_NULL(PyObject_GetAttrString(target, attr));
@@ -116,6 +46,10 @@ void P3AssignAttr(PyObject *target, const char *attr, PyObject *value) {
 
 void P3DelAttr(PyObject *target, const char *attr) {
 	THROW_ON_ERRCODE(PyObject_DelAttrString(target, attr));
+}
+
+PyObject *P3GetType(PyObject *o) {
+	return THROW_ON_NULL(PyObject_Type(o));
 }
 
 /*********************************************
@@ -308,5 +242,18 @@ PyObject *P3time_clock_POSCALLER(PyObject *argstuple) {
 PyObject *P3time_clock() {
     return P3FloatLiteral((float)clock() / CLOCKS_PER_SEC);
 }
+
+PyObject *P3__builtin__int(PyObject *value) {
+	return THROW_ON_NULL(PyNumber_Int(value));
+}
+
+PyObject *P3__builtin__raw_input(PyObject *prompt) {
+	PyObject_Print(prompt, stdout, Py_PRINT_RAW);
+	char input[50];
+	fgets(input, 49, stdin);
+	return P3StringLiteral(input);
+}
+
+
 
 

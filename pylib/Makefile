@@ -2,12 +2,18 @@ APYLIB = /System/Library/Frameworks/Python.framework/Versions/2.7/include/python
 UPYLIB = /usr/include/python2.7
 PYLIB = ${UPYLIB}
 
-P3Lib.o : *.h *.cpp
-	g++ -c -I ${PYLIB} *.cpp -o P3Lib.o
+%.o : %.cpp *.h
+	g++ -c -I ${PYLIB} $< -o $@
+
+SRCS=$(wildcard *.cpp)
+OBJS=$(SRCS:.cpp=.o)
+
+libP3.a : $(OBJS)
+	ar cr libP3.a $?
 
 
 .PHONY : clean
 clean : 
-	rm -f P3Lib.o
+	rm -f *.o *.a
 
 
