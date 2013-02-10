@@ -5,6 +5,10 @@ import unusedVariableRemover
 import variableUnproxyer
 import programPartialEvaluation
 
+def correct(program):
+	variableUnproxyer.clean(program)
+	getFunctionTemporaries.addAnnotationsTo(program)
+
 def optimize(program):
 	programPartialEvaluation.run(program)
 
@@ -12,8 +16,4 @@ def optimize(program):
 	unusedVariableRemover.clean(program)
 	unreachableCodeRemover.clean(program)
 
-	getFunctionTemporaries.addAnnotationsTo(program)
-
-def correct(program):
-	variableUnproxyer.clean(program)
 	getFunctionTemporaries.addAnnotationsTo(program)

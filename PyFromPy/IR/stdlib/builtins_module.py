@@ -6,4 +6,9 @@ BuiltinFn('len', 'P3__builtin__len', 'seq')
 BuiltinFn('raw_input', 'P3__builtin__raw_input', 'prompt')
 BuiltinFn('int', 'P3__builtin__int', 'value')
 
+BuiltinFn('type', 'P3GetType', 'o')
+
+BuiltinFn('globals', 'raise')
+BuiltinFn('locals', 'riase')
+
 buildModule()

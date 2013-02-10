@@ -66,9 +66,5 @@ _subclass(IRProducingOp, {
 	# context dependant
 	'GetGeneratorSentIn': [],	# target = yield
 	'GetException': [],			# except Exception as target: ...; none if no exception
-
-	# these may be removed
-	'GetLocals': [],			# locals(), but locals can be assigned
-	'GetGlobals': [],			# globals(), but globals can be assigned
 })
 

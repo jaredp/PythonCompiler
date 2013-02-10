@@ -47,6 +47,8 @@ New-style classes only, (even though it doesn't make a difference)
 
 __slots__ is just more work
 
+class definitions have their own scope -- the classes!
+
 
 TODOs
 -------------------------
@@ -71,4 +73,4 @@ __builtin__ as part of the variable lookup path makes life very difficult.  It's
 
 TODO: intern strings
 
-
+TODO: there's a bug in the generation of loadtime which makes local variables for the globals which shadow the globals

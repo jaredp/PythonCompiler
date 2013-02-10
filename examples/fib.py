@@ -1,4 +1,4 @@
-from __builtin__ import raw_input, int
+#from __builtin__ import raw_input, int
 from time import clock as fclock
 
 def fib(n):
@@ -22,5 +22,5 @@ def m(maxfib):
 	end = fclock()
 	print sum, ', found in', end - start, 'seconds'
 
-maxfib = int(raw_input('sum fib to '))	
-m(maxfib)
+#maxfib = int(raw_input('sum fib to '))	
+m(35)#(maxfib)

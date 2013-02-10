@@ -55,5 +55,6 @@ def inlineConsts(op, consts):
 		
 	elif isinstance(op, Attr) and op.obj in consts:
 			mod = consts[op.obj]
-			return Assign(op.target, mod.getGlobalVar(op.attr))
+			if isinstance(mod, IRModule):
+				return Assign(op.target, mod.getGlobalVar(op.attr))
 		

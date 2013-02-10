@@ -18,7 +18,9 @@ def build(cppfile, exefile, print_command=False, warn=False):
 		'-I %s' % pyheaders,
 		'-I %s/pylib' % compilerroot,
 
-		 '%s/pylib/P3Lib.o' % compilerroot,
+		 '-L%s/pylib' % compilerroot,
+		 '-lP3',
+
 		 cppfile,
 
 		 pylibflag,

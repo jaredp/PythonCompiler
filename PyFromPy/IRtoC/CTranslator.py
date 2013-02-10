@@ -1,6 +1,5 @@
 from IR import *
 from utils import escapeString
-#from ctypes import *	-- WHY WAS THIS HERE?
 
 class CTranslator(object):
 
@@ -245,7 +244,7 @@ PyObject *%s_POSCALLER(PyObject *argstuple) {
 		For now, we're actually going to make them with the
 		fallback usually reserved for type(,,)
 		'''
-		return 'P3MakeClass(%s)' % op.klass.name
+		return 'P3MakeClass("%s")' % op.klass.name
 
 	def _GetModule(self, op):
 		return op.module.cname

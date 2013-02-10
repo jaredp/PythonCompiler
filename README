@@ -3,4 +3,3 @@ pylib/ is the library that supports generated code
 sandbox/ is a testing ground
 examples/ are examples that should be optimized
 edgecases/ are examples that should compile
-old/ is old code that should be ignored
