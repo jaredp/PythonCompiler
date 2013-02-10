@@ -37,17 +37,16 @@ I don't think we're supporting tracebacks, unless there's support at a C / assem
 
 Objects
 -------------------------
-No plans to support multiple inheritance
+In C, classes should be implemented as structs, with slots for common member.  Lookups should happen in a dicitonary which doesn't always retain the values -- they may be offsets into an object.  This can be accomplished with tagged pointers (i.e. storing the type in the bits of memory that must be 0 in pointers for alignement).
 
-No plans to support metaclasses
-
-Actually, no plans to support inheritance
-
-New-style classes only, (even though it doesn't make a difference)
-
-__slots__ is just more work
 
 class definitions have their own scope -- the classes!
+
+No plans to support multiple inheritance
+No plans to support metaclasses
+Actually, no plans to support inheritance
+New-style classes only, (even though it doesn't make a difference)
+__slots__ is just more work
 
 
 TODOs
