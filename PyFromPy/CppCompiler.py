@@ -13,6 +13,7 @@ def build(cppfile, exefile, print_command=False, warn=False):
 	command = ' '.join([
 		'g++',
 
+		'-g',
 		'-Wall' if warn else '',
 
 		'-I %s' % pyheaders,

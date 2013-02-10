@@ -8,6 +8,8 @@ int main(int argc, char **argv) {
     initFnMechanism();
     initModuleMechanism();
 
+    register_globals();
+
    	try {
 		run_main_module();
 	} catch (PythonException &e) {

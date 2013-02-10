@@ -10,16 +10,22 @@ typedef struct {
 PyAPI_DATA(PyTypeObject) P3Module_Type;
 
 #define DECLARE_MODULE(mname, defined_name)								\
-static P3Module mname = {PyObject_HEAD_INIT(&P3Module_Type) NULL, defined_name}
+static P3Module mname##_static = {										\
+	PyObject_HEAD_INIT(&P3Module_Type) 									\
+	NULL,																\
+	defined_name														\
+};																		\
+static PyObject *mname = (PyObject *)&mname##_static								
+
 
 PyObject *P3InitModule(P3Module *module);
 void P3ModuleRegisterGlobal(
-	P3Module *module,
+	PyObject *module,
 	const char *name,
 	PyCellObject *global
 );
 
-#define DECLARE_GLOBAL(gbl)                                             \
-static PyCellObject gbl_Cell = {PyObject_HEAD_INIT(&PyCell_Type) NULL}; \
-PyObject *&gbl = gbl_Cell.ob_ref
+#define DECLARE_GLOBAL(gbl)													\
+static PyCellObject gbl##_Cell = {PyObject_HEAD_INIT(&PyCell_Type) NULL};	\
+PyObject *&gbl = gbl##_Cell.ob_ref
 

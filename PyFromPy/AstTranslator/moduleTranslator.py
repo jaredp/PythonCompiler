@@ -4,40 +4,19 @@ from BaseTranslator import *
 import ast
 from IR import *
 
+import os.path as path
+
+project_root = ''
 translatedModules = {}
 
-@translatorSubclass
-class ModuleTranslator:
-	def __init__(self, outer, modulename, fname, astmodule):
-		BaseTranslator.__init__(self, outer)
-
-		self.module = IRModule(modulename)
-		translatedModules[fname] = self.module
-		
-		program.modules.add(self.module)
-		program.codes.add(self.module.initcode)
-		
-		self.pullDocstring(astmodule.body)
-		self.buildBlock(
-			self.module.initcode.body, 
-			astmodule.body
-		)
-
-		with IRBlock(self.module.initcode.body):
-			Return(NoneLiteral())
-
-		self.module.docstring = self.docstring
-		self.module.namespace = self.namespace
-
-		self.module.initcode.globals = set(self.namespace.keys())
-		self.module.initcode.namespace = self.namespace
-		# the initcode's namespace IS the global namespace
-
-	def declareGlobal(self, gbl):
-		self.error('global declaration illegal in global scope')
-
-	def currentModule(self):
-		return self.module
+def getRootModuleFile(p):
+	global project_root
+	project_root, fname = path.split(p)
+	return getModuleFile(
+		'__main__', 
+		open(p), 
+		fname
+	)
 
 def getModuleFile(mname, f, fname, outer = None):
 	pcode = f.read()
@@ -51,7 +30,7 @@ def getModuleFile(mname, f, fname, outer = None):
 
 def getModule(mname, outer):
 	try:
-		fname = mname.replace('.', '/') + '.py'
+		fname = path.join(*([project_root] + mname.split('.'))) + '.py' 
 		f = open(fname)
 		return getModuleFile(mname, f, fname, outer)
 	except IOError:
@@ -104,3 +83,35 @@ class ImportTranslator(object):
 			Attr(m, alias.name, target=as_name)
 
 
+@translatorSubclass
+class ModuleTranslator:
+	def __init__(self, outer, modulename, fname, astmodule):
+		BaseTranslator.__init__(self, outer)
+
+		self.module = IRModule(modulename)
+		translatedModules[fname] = self.module
+		
+		program.modules.add(self.module)
+		program.codes.add(self.module.initcode)
+		
+		self.pullDocstring(astmodule.body)
+		self.buildBlock(
+			self.module.initcode.body, 
+			astmodule.body
+		)
+
+		with IRBlock(self.module.initcode.body):
+			Return(NoneLiteral())
+
+		self.module.docstring = self.docstring
+		self.module.namespace = self.namespace
+
+		self.module.initcode.globals = set(self.namespace.keys())
+		self.module.initcode.namespace = self.namespace
+		# the initcode's namespace IS the global namespace
+
+	def declareGlobal(self, gbl):
+		self.error('global declaration illegal in global scope')
+
+	def currentModule(self):
+		return self.module

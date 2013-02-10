@@ -6,6 +6,7 @@
 
 int main(int argc, char **argv);
 PyObject *run_main_module();
+void register_globals();
 
 
 /* exceptions */

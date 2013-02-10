@@ -4,13 +4,28 @@ from base import *
 def generateProgram(program):
 	program.initcode.cname = 'run_main_module'
 
-	write('#include <P3Libs.h>'); fill()
+	write('#include <P3Libs.h>')
+	fill()
 
 	for module in program.modules:
-		declare(module.cname)
+		fill('DECLARE_MODULE(%s, "%s");' % (module.cname, module.name))
 		for var in module.namespace.values():
-			declare(var)
+			fill('DECLARE_GLOBAL(%s);' % var)
 	fill()
+
+	fill('void register_globals()')
+	enterBlock()
+	for module in program.modules:
+		fill('P3InitModule((P3Module *)%s);' % module.cname)
+		for gbl_id, var in module.namespace.items():
+			# the gbl##_Cell is to match DECLARE_GLOBAL in pylib/modules.h
+			fill('P3ModuleRegisterGlobal(%s, "%s", &%s_Cell);' % (
+				module.cname, gbl_id, var
+			))
+		fill()
+	exitBlock()
+	fill()
+
 
 	for function in program.codes:
 		fill('%s;' % fdeclaration(function))
@@ -23,17 +38,19 @@ def generateProgram(program):
 
 
 def fdeclaration(function):
-	args = ', '.join(map(declaration, function.argvars))
-	return 'PyObject *%s(%s)' % (function.cname, args)
+	return 'PyObject *%s(%s)' % (
+		function.cname,
+		', '.join(['PyObject *%s' % v for v in function.argvars])
+	 )
 
 def generateFnPosCaller(fn):
 	argcount = range(len(fn.argvars))
-	args = ', '.join(['PyTuple_GET_ITEM(argstuple, %s)' % i for i in argcount])
-	fill('''
-PyObject *%s_POSCALLER(PyObject *argstuple) {
-return %s(%s);
-}
-	''' % (fn.cname, fn.cname, args))
+	fill('PyObject *%s_POSCALLER(PyObject *argstuple) {' % fn.cname)
+	fill('	return %s(%s);' % (
+		fn.cname,
+		', '.join(['PyTuple_GET_ITEM(argstuple, %s)' % i for i in argcount])
+	))
+	fill('}')
 
 def generateFunction(function):
 	fill(fdeclaration(function))
@@ -41,17 +58,10 @@ def generateFunction(function):
 
 	lcls = [function.namespace[lcl] for lcl in function.locals]
 	for localvar in set(lcls) | function.temporaries:
-		declare(localvar)
+		fill('PyObject *%s = NULL;' % localvar)
 	fill()
 
 	genStmts(function.body)
 	exitBlock()
 
 	fill()
-
-def declare(varname):
-	fill('%s = NULL;' % declaration(varname))
-
-def declaration(varname):
-	return 'PyObject *%s' % varname
-

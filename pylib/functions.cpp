@@ -13,34 +13,11 @@ PyObject *P3Function_Call(P3Function *p3fn, PyObject *posargs, PyObject *kwargs)
 	return p3fn->plain_caller(posargs);
 }
 
-static PyTypeObject P3Function_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0,                         /*ob_size*/
-    "function",		           /*tp_name*/
-    sizeof(P3Function), 	   /*tp_basicsize*/
-    0,                         /*tp_itemsize*/
-    0,                         /*tp_dealloc*/
-    0,                         /*tp_print*/
-    0,                         /*tp_getattr*/
-    0,                         /*tp_setattr*/
-    0,                         /*tp_compare*/
-    0,                         /*tp_repr*/
-    0,                         /*tp_as_number*/
-    0,                         /*tp_as_sequence*/
-    0,                         /*tp_as_mapping*/
-    0,                         /*tp_hash */
-    (ternaryfunc)P3Function_Call,           /*tp_call*/
-    0,                         /*tp_str*/
-    0,                         /*tp_getattro*/
-    0,                         /*tp_setattro*/
-    0,                         /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT,        /*tp_flags*/
-    "compiled function",       /* tp_doc */
-};
+static PyTypeObject P3Function_Type = {PyObject_HEAD_INIT(NULL)};
 
 
 PyObject *P3MakeFunction(fptr fn, const char *defined_name) {
-    P3Function *self = (P3Function *)P3Function_Type.tp_alloc(&P3Function_Type, 0);
+    P3Function *self = (P3Function *)PyType_GenericAlloc(&P3Function_Type, 0);
     THROW_ON_NULL(self);
 
     self->plain_caller = fn;
@@ -50,7 +27,16 @@ PyObject *P3MakeFunction(fptr fn, const char *defined_name) {
 }
 
 void initFnMechanism() {
+    P3Function_Type.tp_call = (ternaryfunc)P3Function_Call;
+
+    P3Function_Type.tp_name = "function";
+    P3Function_Type.tp_doc = "compiled function";
+
+    P3Function_Type.tp_basicsize = sizeof(P3Function);
     P3Function_Type.tp_dictoffset = offsetof(P3Function, dict);
+
+    P3Function_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+
 	if (PyType_Ready(&P3Function_Type) != 0) {
 		RAISE;
 	}
