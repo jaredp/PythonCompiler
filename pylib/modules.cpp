@@ -7,32 +7,22 @@ PyObject *P3InitModule(P3Module *module) {
     module->dict = PyDict_New();
 }
 
-void P3ModuleRegisterGlobal(PyObject *module, const char *name, PyCellObject *global) {
-
+void P3ModuleRegisterGlobal(PyObject *_module, const char *name, PyCellObject *global) {
+    P3Module *module = (P3Module *)_module;
+    PyDict_SetItemString(module->dict, name, (PyObject *)global);
 }
 
-#define log(obj) PyObject_Print((PyObject *)obj, stderr, 0)
+#define log(obj) PyObject_Print((PyObject *)obj, stdout, 0)
 
 PyObject *P3Module_GetGlobal(P3Module *module, PyObject *identifier) {
-    printf("getting global in ");
-    log(module);
-    printf(" named ");
-    log(identifier);
-    printf("\n");
-
-    Py_RETURN_NONE;
+    PyObject *cell = PyDict_GetItem(module->dict, identifier);
+    return PyCell_GET(cell);
 }
 
-PyObject *P3Module_SetGlobal(P3Module *module, PyObject *identifier, PyObject *nval) {
-    printf("setting global in ");
-    log(module);
-    printf(" named ");
-    log(identifier);
-    printf(" to ");
-    log(nval);
-    printf("\n");
-
-    Py_RETURN_NONE;
+int P3Module_SetGlobal(P3Module *module, PyObject *identifier, PyObject *nval) {
+    PyObject *cell = PyDict_GetItem(module->dict, identifier);
+    PyCell_SET(cell, nval);
+    return 0;
 }
 
 

@@ -9,11 +9,11 @@ if platform.mac_ver()[0] != '':	#is MacOS
 else:
 	pyheaders = '/usr/include/python2.7'
 
-def build(cppfile, exefile, print_command=False, warn=False):
+def build(cppfile, exefile, print_command=False, warn=False, debug_symbols=False):
 	command = ' '.join([
 		'g++',
 
-		'-g',
+		'-g' if debug_symbols else '',
 		'-Wall' if warn else '',
 
 		'-I %s' % pyheaders,

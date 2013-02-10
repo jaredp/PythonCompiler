@@ -1,3 +1,3 @@
 import likeir
 #print likeir
-print likeir.a
+print likeir.a.f

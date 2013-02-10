@@ -40,7 +40,8 @@ def _main(mainfile):
 	if '-ng' not in command_line_flags:
 		CppCompiler.build(cppfile, pname,
 			'-gcc' in command_line_flags,
-			'-W' in command_line_flags
+			'-W' in command_line_flags,
+			'-g' in command_line_flags
 		)
 
 def main():
