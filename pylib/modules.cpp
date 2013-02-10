@@ -12,7 +12,7 @@ void P3ModuleRegisterGlobal(PyObject *_module, const char *name, PyCellObject *g
     PyDict_SetItemString(module->dict, name, (PyObject *)global);
 }
 
-#define log(obj) PyObject_Print((PyObject *)obj, stdout, 0)
+#define log(obj) PyObject_Print((PyObject *)obj, stdout, 0); printf("\n")
 
 PyObject *P3Module_GetGlobal(P3Module *module, PyObject *identifier) {
     PyObject *cell = PyDict_GetItem(module->dict, identifier);
@@ -21,6 +21,10 @@ PyObject *P3Module_GetGlobal(P3Module *module, PyObject *identifier) {
 
 int P3Module_SetGlobal(P3Module *module, PyObject *identifier, PyObject *nval) {
     PyObject *cell = PyDict_GetItem(module->dict, identifier);
+    if (cell == NULL) {
+        cell = PyCell_New(nval);
+        PyDict_SetItem(module->dict, identifier, cell);
+    }
     PyCell_SET(cell, nval);
     return 0;
 }
