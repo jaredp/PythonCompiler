@@ -128,7 +128,9 @@ def _Try(irexpr):
 	raise NotImplementedError
 
 def _Raise(irexpr):
-	raise NotImplementedError
+	#FIXME: this is only the most generic thing possible
+	return 'RAISE'
+
 
 def _GetException(irexpr):
 	raise 'P3GetException()'

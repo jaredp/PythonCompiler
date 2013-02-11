@@ -115,4 +115,7 @@ def _pprintCall(call):
 def _pprintAssign(asn):
 	_print_indented('%s = %s' % (asn.target, asn.rhs))
 
+@pprinter(Return)
+def _pprintReturn(ret):
+	_print_indented('return %s' % ret.value)
 

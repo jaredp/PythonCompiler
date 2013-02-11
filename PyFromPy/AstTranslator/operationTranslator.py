@@ -2,6 +2,7 @@ from ast import *
 from IR import *
 
 from BaseTranslator import translatorMixin
+from IREmitter import *
 
 @translatorMixin
 class Operations:
@@ -51,12 +52,9 @@ class Operations:
 		res = ops[type(op)](lhs, rhs)
 		t.makeAssignment(target, res)
 
-	def _BoolOp(t, op, values):
-		raise NotImplementedError
-
 	def _UnaryOp(t, op, operand):
 		ops = {
-			Invert: InvertUnaryOp,
+			Invert: stdlib.InvertUnaryOp,
 			Not: stdlib.NotUnaryOp,
 			UAdd: stdlib.UAddUnaryOp,
 			USub: stdlib.USubUnaryOp
@@ -85,3 +83,28 @@ class Operations:
 			but it's late and that's underused
 			'''
 			return comparison
+
+	def _BoolOp(t, op, values):
+		lhs = t(values[0])
+		wants_first = isinstance(op, Or)
+		t.makeShortCircuitingLogic(wants_first, lhs, values[1:])
+		return lhs
+
+	def makeShortCircuitingLogic(t, wants_first, lhs, rhses):
+		if rhses == []:
+			return
+
+		if wants_first:
+			shouldnt_short_circuit = stdlib.InvertUnaryOp(lhs)
+		else:
+			shouldnt_short_circuit = lhs
+
+		n = If(shouldnt_short_circuit, [], [], noemit=True)
+		with IRBlock(n.then):
+			Assign(target=lhs, rhs=t(rhses[0]))
+			t.makeShortCircuitingLogic(wants_first, lhs, rhses[1:])
+		emit(n)
+
+
+
+

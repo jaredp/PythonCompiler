@@ -109,7 +109,7 @@ class ControlFlow:
 			# I think this is an old form or something...?
 			raise NotImplementedError
 
-		return Raise(t(type))
+		return Raise(t(type) if type else None)
 
 	'''
 	Untested.  Currently, it looks like there should be a manual handling
