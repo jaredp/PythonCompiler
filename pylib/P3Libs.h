@@ -81,8 +81,8 @@ PyObject *SetAdd(PyObject *member);
 PyObject *NewDict(PyObject *size);
 PyObject *DictSet(PyObject *dict, PyObject *key, PyObject *value);
 
-PyObject *Subscript(PyObject *obj, PyObject *subscript, PyObject *value);
-PyObject *Slice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step, PyObject *value);
+PyObject *Subscript(PyObject *obj, PyObject *subscript);
+PyObject *Slice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step);
 PyObject *AssignSubscript(PyObject *obj, PyObject *subscript, PyObject *value);
 PyObject *AssignSlice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step, PyObject *value);
 PyObject *DeleteSubscript(PyObject *obj, PyObject *subscript);

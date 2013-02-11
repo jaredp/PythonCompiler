@@ -135,6 +135,36 @@ PyObject *ListAppend(PyObject *list, PyObject *member) {
 	THROW_ON_ERRCODE(PyList_Append(list, member));
 }
 
+/*********************************************
+ * Slice Operations
+ *********************************************/
+
+PyObject *Subscript(PyObject *obj, PyObject *subscript) {
+	return THROW_ON_NULL(PyObject_GetItem(obj, subscript));
+}
+
+PyObject *Slice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step) {
+	return Subscript(obj, THROW_ON_NULL(PySlice_New(start, end, step)));
+}
+
+PyObject *AssignSubscript(PyObject *obj, PyObject *subscript, PyObject *value) {
+	THROW_ON_ERRCODE(PyObject_SetItem(obj, subscript, value));
+	Py_RETURN_NONE;
+}
+
+PyObject *AssignSlice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step, PyObject *value) {
+	return AssignSubscript(obj, THROW_ON_NULL(PySlice_New(start, end, step)), value);
+}
+
+PyObject *DeleteSubscript(PyObject *obj, PyObject *subscript) {
+	THROW_ON_ERRCODE(PyObject_DelItem(obj, subscript));
+	Py_RETURN_NONE;
+}
+
+PyObject *DeleteSlice(PyObject *obj, PyObject *start, PyObject *end, PyObject *step) {
+	return DeleteSubscript(obj, THROW_ON_NULL(PySlice_New(start, end, step)));
+}
+
 
 /*********************************************
  * Binary Operations
