@@ -3,7 +3,7 @@ UPYLIB = /usr/include/python2.7
 PYLIB = ${UPYLIB}
 
 %.o : %.cpp *.h
-	g++ -g -c -I ${PYLIB} $< -o $@
+	g++ -c -I ${PYLIB} $< -o $@
 
 SRCS=$(wildcard *.cpp)
 OBJS=$(SRCS:.cpp=.o)

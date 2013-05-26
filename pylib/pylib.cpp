@@ -58,7 +58,7 @@ PyObject *P3GetType(PyObject *o) {
  * Literals
  *********************************************/
 
-inline PyObject *P3IntLiteral(long value) {
+PyObject *P3IntLiteral(long value) {
 	return THROW_ON_NULL(PyInt_FromLong(value));
 }
 
